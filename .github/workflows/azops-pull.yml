@@ -25,16 +25,21 @@ jobs:
           Get-ChildItem -Path "/usr/share/az*"
         shell: pwsh
 
-      - name: "Connect"
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
-
       - name: "Install"
         run: |
-          Install-Module -Name @("PSFramework") -Force
+          Install-Module -Name @("Az.Accounts", "Az.Resources", "PSFramework") -Force
         shell: pwsh
+
+      - name: "Connect"
+        run: |
+          $ClientId = ($env:CREDENTIALS | ConvertFrom-Json).ClientId
+          $ClientSecret = ConvertTo-SecureString -String ($env:CREDENTIALS | ConvertFrom-Json).ClientSecret -AsPlainText -Force
+          $TenantId = ($env:CREDENTIALS | ConvertFrom-Json).TenantId
+          $SubscriptionId = ($env:CREDENTIALS | ConvertFrom-Json).SubscriptionId
+          $Credential = New-Object -TypeName "System.Management.Automation.PSCredential" -ArgumentList $ClientId, $ClientSecret
+          Connect-AzAccount -Credential $Credential -Tenant $TenantId -Subscription $SubscriptionId
+        env:
+          credentials: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: "Import"
         run: |
