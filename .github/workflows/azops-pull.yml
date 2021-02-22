@@ -3,6 +3,9 @@ name: "AzOps - Pull"
 on:
   workflow_dispatch:
 
+env:
+  credentials: ${{ secrets.AZURE_CREDENTIALS }}
+
 jobs:
   pull:
     name: "Pull"
@@ -41,8 +44,6 @@ jobs:
             -Credential $credential `
             -SubscriptionId $credentials.subscriptionId
         shell: pwsh
-        env:
-          credentials: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: "Import"
         run: |
