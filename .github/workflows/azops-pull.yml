@@ -50,5 +50,6 @@ jobs:
         run: |
           Import-Module "./azops/src/AzOps.psd1"
           Import-PSFConfig -Path "azops/config.json"
-          Invoke-AzOpsGitPull -StatePath "azops-starter/"
+          Set-PSFConfig -FullName PSFramework.Developer.Mode.Enable -Value $true
+          Invoke-AzOpsGitPull
         shell: pwsh
