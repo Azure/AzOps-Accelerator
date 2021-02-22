@@ -1,0 +1,12 @@
+name: "AzOps"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  pull:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: "Hello"
+        run: Write-Host "Hello World"
+        shell: pwsh
