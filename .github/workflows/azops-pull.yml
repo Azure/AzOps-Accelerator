@@ -18,6 +18,10 @@ jobs:
           repository: ljtill/azops
           path: azops
           ref: dev
+      - name: "Install"
+        run: |
+          Install-Module -Name @("PSFramework", "Az.Accounts", "Az.Resources") -Force
+        shell: pwsh
       - name: "Import"
         run: |
           Import-Module ./src/AzOps.psd1 -Verbose
