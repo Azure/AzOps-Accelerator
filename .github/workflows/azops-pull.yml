@@ -52,6 +52,7 @@ jobs:
         run: |
           Import-Module ./azops/src/AzOps.psd1
           $VerbosePreference = "Continue"
+          Write-Host $ErrorActionPreference
           Set-PSFConfig -FullName AzOps.Core.State -Value "/home/runner/work/AzOps-Starter/AzOps-Starter/azops/azops/" -Description "-"
-          Initialize-AzOpsRepository -Debug
+          Initialize-AzOpsRepository -ErrorAction SilentlyContinue -Debug
         shell: pwsh
