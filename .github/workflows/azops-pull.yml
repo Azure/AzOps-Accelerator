@@ -49,6 +49,6 @@ jobs:
       - name: "Pull"
         run: |
           Import-Module ./azops/src/AzOps.psd1
-          Import-PSFConfig -File ./azops/config.json
+          Import-PSFConfig -Path ./azops/config.json
           Invoke-AzOpsGitPull -StatePath "./azops-starter/"
         shell: pwsh
