@@ -53,5 +53,5 @@ jobs:
           Import-Module ./azops/src/AzOps.psd1
           $VerbosePreference = "Continue"
           Set-PSFConfig -FullName AzOps.Core.State -Value "/home/runner/work/AzOps-Starter/AzOps-Starter/azops/azops/" -Description "-"
-          Initialize-AzOpsRepository -SkipPolicy -SkipResourceGroup -Verbose
+          Initialize-AzOpsRepository -SkipPolicy -SkipResourceGroup -Debug
         shell: pwsh
