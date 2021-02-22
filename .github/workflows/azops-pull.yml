@@ -49,7 +49,7 @@ jobs:
       - name: "Pull"
         run: |
           Import-Module "./azops/src/AzOps.psd1"
-          Import-PSFConfig -Path "azops/config.json"
+          #Import-PSFConfig -Path "azops/config.json"
           $VerbosePreference = "Continue"
           #Set-PSFConfig -FullName PSFramework.Developer.Mode.Enable -Value $true
           Invoke-AzOpsGitPull -StatePath "/home/runner/work/AzOps-Starter/AzOps-Starter/azops/"
