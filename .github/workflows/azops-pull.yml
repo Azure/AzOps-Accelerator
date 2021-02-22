@@ -26,11 +26,6 @@ jobs:
           path: azops
           ref: dev
 
-      - name: "List"
-        run: |
-          Get-ChildItem -Path "/usr/share/az*"
-        shell: pwsh
-
       - name: "Install"
         run: |
           Install-Module -Name @("Az.Accounts", "Az.Resources", "PSFramework") -Force
@@ -51,8 +46,7 @@ jobs:
             -SubscriptionId $subscriptionId
         shell: pwsh
 
-      - name: "Import"
+      - name: "List"
         run: |
-          Import-Module ./src/AzOps.psd1
+          Get-ChildItem
         shell: pwsh
-        working-directory: azops
