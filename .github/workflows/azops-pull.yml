@@ -35,13 +35,17 @@ jobs:
 
       - name: "Connect"
         run: |
+          $clientId = $env:ARM_CLIENT_ID
+          $clientSecret = $env:ARM_CLIENT_SECRET
+          $tenantId = $env:ARM_TENANT_ID
+          $subscriptionId = $env:ARM_SUBSCRIPTION_ID
           $credential = New-Object System.Management.Automation.PSCredential `
-            -ArgumentList "$env:ARM_CLIENT_ID", ("$env:ARM_CLIENT_SECRET" | ConvertTo-SecureString -AsPlainText -Force)
+            -ArgumentList $clientId, (ConvertTo-SecureString -String $clientSecret -AsPlainText -Force)
           Connect-AzAccount `
-            -TenantId "$env:ARM_TENANT_ID" `
+            -TenantId $tenantId `
             -ServicePrincipal `
             -Credential $credential `
-            -SubscriptionId "$env:ARM_SUBSCRIPTION_ID"
+            -SubscriptionId $subscriptionId
         shell: pwsh
 
       - name: "Import"
