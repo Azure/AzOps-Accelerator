@@ -46,7 +46,9 @@ jobs:
             -SubscriptionId $subscriptionId
         shell: pwsh
 
-      - name: "List"
+      - name: "Pull"
         run: |
-          Get-ChildItem
+          Import-Module ./azops/src/AzOps.psd1
+          Import-PSFConfig -File ./azops/config.json
+          Invoke-AzOpsGitPull -StatePath "./azops-starter/"
         shell: pwsh
