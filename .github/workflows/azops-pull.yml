@@ -32,10 +32,10 @@ jobs:
 
       - name: "Connect"
         run: |
-          $ClientId = ($env:CREDENTIALS).ClientId
-          $ClientSecret = ConvertTo-SecureString -String ($env:CREDENTIALS).ClientSecret -AsPlainText -Force
-          $TenantId = ($env:CREDENTIALS).TenantId
-          $SubscriptionId = ($env:CREDENTIALS).SubscriptionId
+          $ClientId = ($env:CREDENTIALS | ConvertFrom-Json).clientId
+          $ClientSecret = ConvertTo-SecureString -String ($env:CREDENTIALS | ConvertFrom-Json).clientSecret -AsPlainText -Force
+          $TenantId = ($env:CREDENTIALS | ConvertFrom-Json).tenantId
+          $SubscriptionId = ($env:CREDENTIALS | ConvertFrom-Json).subscriptionId
           $Credential = New-Object -TypeName "System.Management.Automation.PSCredential" -ArgumentList $ClientId, $ClientSecret
           Connect-AzAccount -Credential $Credential -Tenant $TenantId -Subscription $SubscriptionId
         shell: pwsh
