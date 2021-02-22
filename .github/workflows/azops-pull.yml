@@ -8,6 +8,22 @@ jobs:
     name: "Pull"
     runs-on: ubuntu-20.04
     steps:
-      - name: "Hello"
-        run: Write-Host "Hello World"
+      - name: "Checkout"
+        uses: actions/checkout@v2
+        with:
+          path: azops-starter
+      - name: "Checkout"
+        uses: actions/checkout@v2
+        with:
+          repository: ljtill/azops
+          path: azops
+          ref: dev
+      - name: "Import"
+        run: |
+          Import-Module ./src/AzOps.psd1 -Verbose
+        shell: pwsh
+        working-directory: azops
+      - name: "List"
+        run: |
+          Get-Module -ListAvailable
         shell: pwsh
