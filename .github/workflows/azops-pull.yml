@@ -32,12 +32,14 @@ jobs:
 
       - name: "Connect"
         run: |
-          $ClientId = ($env:CREDENTIALS | ConvertFrom-Json).clientId
-          $ClientSecret = ConvertTo-SecureString -String ($env:CREDENTIALS | ConvertFrom-Json).clientSecret -AsPlainText -Force
-          $TenantId = ($env:CREDENTIALS | ConvertFrom-Json).tenantId
-          $SubscriptionId = ($env:CREDENTIALS | ConvertFrom-Json).subscriptionId
-          $Credential = New-Object -TypeName "System.Management.Automation.PSCredential" -ArgumentList $ClientId, $ClientSecret
-          Connect-AzAccount -Credential $Credential -Tenant $TenantId -Subscription $SubscriptionId
+          $credentials = ($env:AZURE_CREDENTIALS | ConvertFrom-Json)
+          $credential = New-Object System.Management.Automation.PSCredential `
+            -ArgumentList $credentials.clientId, ($credentials.clientSecret | ConvertTo-SecureString -AsPlainText -Force)
+          Connect-AzAccount `
+            -TenantId $credentials.tenantId `
+            -ServicePrincipal `
+            -Credential $credential `
+            -SubscriptionId $credentials.subscriptionId
         shell: pwsh
         env:
           credentials: ${{ secrets.AZURE_CREDENTIALS }}
