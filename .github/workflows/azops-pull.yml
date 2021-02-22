@@ -24,7 +24,8 @@ jobs:
         shell: pwsh
       - name: "Import"
         run: |
-          Import-Module ./src/AzOps.psd1 -Verbose
+          Import-Module ./src/AzOps.psd1
+          Get-Module
         shell: pwsh
         working-directory: azops
       - name: "List"
