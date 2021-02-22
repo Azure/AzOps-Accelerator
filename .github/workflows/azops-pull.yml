@@ -22,7 +22,7 @@ jobs:
 
       - name: "List"
         run: |
-          Get-Module -ListAvailable
+          Get-ChildItem -Path "/usr/share/az*"
         shell: pwsh
 
       # - name: "Connect"
