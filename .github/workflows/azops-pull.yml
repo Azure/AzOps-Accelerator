@@ -35,14 +35,13 @@ jobs:
 
       - name: "Connect"
         run: |
-          $credentials = ($env:AZURE_CREDENTIALS | ConvertFrom-Json)
           $credential = New-Object System.Management.Automation.PSCredential `
-            -ArgumentList $credentials.clientId, ($credentials.clientSecret | ConvertTo-SecureString -AsPlainText -Force)
+            -ArgumentList "$env:ARM_CLIENT_ID", ("$env:ARM_CLIENT_SECRET" | ConvertTo-SecureString -AsPlainText -Force)
           Connect-AzAccount `
-            -TenantId $credentials.tenantId `
+            -TenantId "$env:ARM_TENANT_ID" `
             -ServicePrincipal `
             -Credential $credential `
-            -SubscriptionId $credentials.subscriptionId
+            -SubscriptionId "$env:ARM_SUBSCRIPTION_ID"
         shell: pwsh
 
       - name: "Import"
