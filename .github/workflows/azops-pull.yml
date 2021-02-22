@@ -25,16 +25,19 @@ jobs:
           Get-ChildItem -Path "/usr/share/az*"
         shell: pwsh
 
-      # - name: "Connect"
-      #   uses: azure/login@v1
-      #   with:
-      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
-      # - name: "Install"
-      #   run: |
-      #     Install-Module -Name @("PSFramework") -Force
-      #   shell: pwsh
-      # - name: "Import"
-      #   run: |
-      #     Import-Module ./src/AzOps.psd1
-      #   shell: pwsh
-      #   working-directory: azops
+      - name: "Connect"
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: true
+
+      - name: "Install"
+        run: |
+          Install-Module -Name @("PSFramework") -Force
+        shell: pwsh
+
+      - name: "Import"
+        run: |
+          Import-Module ./src/AzOps.psd1
+        shell: pwsh
+        working-directory: azops
