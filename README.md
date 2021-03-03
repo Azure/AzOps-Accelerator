@@ -2,7 +2,7 @@
 
 ## Configuration
 
-The following script blocks will prepare the repository for Push and Pull operating models.
+The following script blocks and steps will prepare the repository for Push and Pull operating models.
 
 ### GitHub Actions
 
@@ -13,11 +13,9 @@ Run either the `bash` or `powershell` script blocks from within the root of repo
 mkdir .github/workflows
 
 # Copy actions templates
-cp -R .github/templates/ .github/workflows/
+cp -R .github/templates/simple/ .github/workflows/
 
-# Edit the following files
-.github/workflows/pull.yml
-.github/workflows/push.yml
+
 
 # Remove pipelines artefacts
 rm -rf .pipelines/
@@ -33,6 +31,13 @@ Copy-Item -Path ./.github/templates/* -Destination ./.github/workflows/ -Recurse
 # Remove pipelines
 Remove-Item -Path ./.pipelines/ -Recurse -Force
 ```
+
+After running the script blocks, the following repository secrets will need to be created.
+
+- ARM_CLIENT_ID
+- ARM_CLIENT_SECRET
+- ARM_TENANT_ID
+- ARM_SUBSCRIPTION_ID
 
 ### Azure Pipelines
 
@@ -57,6 +62,13 @@ Copy-Item -Path ./.pipelines/templates/* -Destination ./.pipelines/ -Recurse
 # Remove pipelines
 Remove-Item -Path ./.github/ -Recurse -Force
 ```
+
+After running the script blocks, the following pipeline variables will need to be created.
+
+- ARM_CLIENT_ID
+- ARM_CLIENT_SECRET
+- ARM_TENANT_ID
+- ARM_SUBSCRIPTION_ID
 
 ## Contributing
 
