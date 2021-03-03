@@ -1,1 +1,173 @@
 ---
+name: 'Pull'
+
+trigger: none
+
+# Temporary
+
+pool:
+  name: 'Azure Self-hosted Pipelines'
+
+jobs:
+
+  #
+  # Pull
+  #
+
+- job: pull
+  displayName: 'Pull'
+  timeoutInMinutes: 30
+  workspace:
+        clean: all
+  steps:
+
+  #
+  # Checkout
+  #
+
+  - checkout: self
+    fetchDepth: 0
+    persistCredentials: true
+
+  #
+  # Configure
+  #
+
+  - task: Bash@3
+    displayName: 'Configure'
+    inputs:
+      targetType: 'inline'
+      script: |
+          git config user.name 'Azure DevOps'
+          git config user.email 'azuredevops@microsoft.com'
+      workingDirectory: 'AzOps-Test'
+
+  #
+  # Checkout (switch)
+  #
+
+  - task: Bash@3
+    displayName: 'Checkout'
+    inputs:
+      targetType: 'inline'
+      script: |
+        git checkout -b automated
+      workingDirectory: 'AzOps-Test'
+
+  #
+  # Dependencies
+  #
+
+  - task: PowerShell@2
+    displayName: 'Dependencies'
+    inputs:
+      targetType: 'inline'
+      script: |
+        Install-Module -Name "AzOps" -AllowPrerelease -Force
+        Install-Module -Name @("Az.Accounts", "Az.Billing", "Az.Resources", "PSFramework") -Force
+
+  #
+  # Connect
+  #
+
+  - task: PowerShell@2
+    displayName: 'Connect'
+    inputs:
+      targetType: 'inline'
+      script: |
+          $credential = New-Object System.Management.Automation.PSCredential `
+            -ArgumentList $(ARM_CLIENT_ID), (ConvertTo-SecureString -String $(ARM_CLIENT_SECRET) -AsPlainText -Force)
+          Connect-AzAccount `
+            -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
+
+  #
+  # Initialize
+  #
+
+  - task: PowerShell@2
+    displayName: 'Initialize'
+    inputs:
+      targetType: 'inline'
+      script: |
+          Import-PSFConfig -Path settings.json -Schema MetaJson
+          Initialize-AzOpsRepository -Rebuild
+          Get-Job | Remove-Job -Force
+      workingDirectory: 'AzOps-Test'
+
+  #
+  # Status
+  #
+
+  - task: Bash@3
+    displayName: 'Status'
+    inputs:
+      targetType: 'inline'
+      script: |
+        STATUS=$(git status --short)
+        if [ -z "$STATUS" ]
+        then
+          echo '##vso[task.setvariable variable=state]continue'
+        else
+          echo '##vso[task.setvariable variable=state]stop'
+        fi
+      workingDirectory: 'AzOps-Test'
+
+  #
+  # Add
+  #
+
+  - task: Bash@3
+    displayName: 'Add'
+    condition: contains(variables['state'], 'stop')
+    inputs:
+      targetType: 'inline'
+      script: |
+        git add ./azops
+      workingDirectory: 'AzOps-Test'
+
+  #
+  # Commit
+  #
+
+  - task: Bash@3
+    displayName: 'Commit'
+    condition: contains(variables['state'], 'stop')
+    inputs:
+      targetType: 'inline'
+      script: |
+        git commit -m 'Automated commit'
+      workingDirectory: 'AzOps-Test'
+
+  #
+  # Push
+  #
+
+  - task: Bash@3
+    displayName: 'Push'
+    condition: contains(variables['state'], 'stop')
+    inputs:
+      targetType: 'inline'
+      script: |
+        git push origin automated -f
+      workingDirectory: 'AzOps-Test'
+
+  #
+  # Merge
+  #
+
+  - task: Bash@3
+    displayName: 'Merge'
+    condition: contains(variables['state'], 'stop')
+    inputs:
+      targetType: 'inline'
+      script: |
+        az repos pr create \
+          --title "Automated State" \
+          --source-branch "automated" \
+          --target-branch "main" \
+          --squash true \
+          --delete-source-branch true \
+          --auto-complete true
+      workingDirectory: 'AzOps-Test'
+    env:
+      AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
