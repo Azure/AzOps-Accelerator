@@ -1,0 +1,37 @@
+{
+    "Version": 1,
+    "Static": {
+        "AzOps.Core.AutoInitialize": true,
+        "AzOps.Core.DefaultDeploymentRegion": "northeurope",
+        "AzOps.Core.EnrollmentAccountPrincipalName": "",
+        "AzOps.Core.ExcludedSubOffer": [
+            "AzurePass_2014-09-01",
+            "FreeTrial_2014-09-01",
+            "AAD_2015-09-01"
+        ],
+        "AzOps.Core.ExcludedSubState": [
+            "Disabled",
+            "Deleted",
+            "Warned",
+            "Expired"
+        ],
+        "AzOps.Core.ExportRawTemplate": false,
+        "AzOps.Core.GeneralizeTemplates": false,
+        "AzOps.Core.IgnoreContextCheck": false,
+        "AzOps.Core.InvalidateCache": true,
+        "AzOps.Core.MainTemplate": "",
+        "AzOps.Core.OfferType": "MS-AZR-0017P",
+        "AzOps.Core.PartialMgDiscoveryRoot": [],
+        "AzOps.Core.SkipPolicy": false,
+        "AzOps.Core.SkipResourceGroup": true,
+        "AzOps.Core.SkipRole": false,
+        "AzOps.Core.SourceControl": "GitHub",
+        "AzOps.Core.State": "",
+        "AzOps.Core.SupportPartialMgDiscovery": false,
+        "AzOps.Core.TemplateParameterFileSuffix": ".parameters.json",
+        "AzOps.Core.ThrottleLimit": 10,
+        "PSFramework.Message.Info.Maximum": 1,
+        "LoggingProvider.Console.Action.Enabled": true,
+        "PSFramework.Logging.Console.Action.Style": "[%Level%] %Message%"
+    }
+}
