@@ -25,8 +25,8 @@
         "AzOps.Core.SkipPolicy": false,
         "AzOps.Core.SkipResourceGroup": true,
         "AzOps.Core.SkipRole": false,
-        "AzOps.Core.SourceControl": "GitHub",
         "AzOps.Core.State": "",
+        "AzOps.Core.StateConfig": "",
         "AzOps.Core.SupportPartialMgDiscovery": false,
         "AzOps.Core.TemplateParameterFileSuffix": ".parameters.json",
         "AzOps.Core.ThrottleLimit": 10
