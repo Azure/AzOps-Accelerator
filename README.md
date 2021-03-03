@@ -1,5 +1,63 @@
 # AzOps-Starter
 
+## Configuration
+
+The following script blocks will prepare the repository for Push and Pull operating models.
+
+### GitHub Actions
+
+Run either the `bash` or `powershell` script blocks from within the root of repository.
+
+```bash
+# Create workflows directory
+mkdir .github/workflows
+
+# Copy actions templates
+cp -R .github/templates/ .github/workflows/
+
+# Edit the following files
+.github/workflows/pull.yml
+.github/workflows/push.yml
+
+# Remove pipelines artefacts
+rm -rf .pipelines/
+```
+
+```powershell
+# Create workflows directory
+New-Item -Path ./ -Name ".github/workflows" -ItemType Directory
+
+# Copy actions templates
+Copy-Item -Path ./.github/templates/* -Destination ./.github/workflows/ -Recurse
+
+# Remove pipelines
+Remove-Item -Path ./.pipelines/ -Recurse -Force
+```
+
+### Azure Pipelines
+
+Run either the `bash` or `powershell` script blocks from within the root of repository.
+
+```bash
+# Copy templates to the root
+cp -R .pipelines/templates/ .pipelines/
+
+# Edit the following files
+.pipelines/pull.yml
+.pipelines/push.yml
+
+# Remove Actions
+rm -rf .github/
+```
+
+```powershell
+# Copy actions templates
+Copy-Item -Path ./.pipelines/templates/* -Destination ./.pipelines/ -Recurse
+
+# Remove pipelines
+Remove-Item -Path ./.github/ -Recurse -Force
+```
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
