@@ -1,5 +1,5 @@
 ---
-name: 'Pull'
+name: 'AzOps - Pull'
 
 trigger: none
 
@@ -10,19 +10,20 @@ pool:
 
 jobs:
 
+- job: pull
+
   #
   # Pull
   #
 
-- job: pull
   displayName: 'Pull'
-  timeoutInMinutes: 30
   workspace:
         clean: all
   steps:
 
   #
   # Checkout
+  # Checks-out the repository
   #
 
   - checkout: self
@@ -31,6 +32,7 @@ jobs:
 
   #
   # Configure
+  # Set global options
   #
 
   - task: Bash@3
@@ -40,10 +42,10 @@ jobs:
       script: |
           git config user.name 'Azure DevOps'
           git config user.email 'azuredevops@microsoft.com'
-      workingDirectory: 'AzOps-Test'
 
   #
-  # Checkout (switch)
+  # Checkout
+  # Switch branches
   #
 
   - task: Bash@3
@@ -52,10 +54,10 @@ jobs:
       targetType: 'inline'
       script: |
         git checkout -b automated
-      workingDirectory: 'AzOps-Test'
 
   #
   # Dependencies
+  # Install required runtime modules
   #
 
   - task: PowerShell@2
@@ -68,6 +70,7 @@ jobs:
 
   #
   # Connect
+  # Authenticate Azure context
   #
 
   - task: PowerShell@2
@@ -82,6 +85,7 @@ jobs:
 
   #
   # Initialize
+  # Generate new state data
   #
 
   - task: PowerShell@2
@@ -92,10 +96,10 @@ jobs:
           Import-PSFConfig -Path settings.json -Schema MetaJson
           Initialize-AzOpsRepository -Rebuild
           Get-Job | Remove-Job -Force
-      workingDirectory: 'AzOps-Test'
 
   #
   # Status
+  # Check for data changes
   #
 
   - task: Bash@3
@@ -110,10 +114,10 @@ jobs:
         else
           echo '##vso[task.setvariable variable=state]stop'
         fi
-      workingDirectory: 'AzOps-Test'
 
   #
   # Add
+  # Add file content to index
   #
 
   - task: Bash@3
@@ -123,10 +127,10 @@ jobs:
       targetType: 'inline'
       script: |
         git add ./azops
-      workingDirectory: 'AzOps-Test'
 
   #
   # Commit
+  # Record changes to the repository
   #
 
   - task: Bash@3
@@ -136,10 +140,10 @@ jobs:
       targetType: 'inline'
       script: |
         git commit -m 'Automated commit'
-      workingDirectory: 'AzOps-Test'
 
   #
   # Push
+  # Update remote refs along with associated objects
   #
 
   - task: Bash@3
@@ -149,10 +153,10 @@ jobs:
       targetType: 'inline'
       script: |
         git push origin automated -f
-      workingDirectory: 'AzOps-Test'
 
   #
   # Merge
+  # Update remote refs along with associated objects
   #
 
   - task: Bash@3
@@ -168,6 +172,5 @@ jobs:
           --squash true \
           --delete-source-branch true \
           --auto-complete true
-      workingDirectory: 'AzOps-Test'
     env:
       AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)

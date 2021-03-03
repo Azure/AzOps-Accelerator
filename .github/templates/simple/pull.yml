@@ -69,6 +69,7 @@ jobs:
 
       #
       # Connect
+      # Authenticate Azure context
       #
 
       - name: "Connect"
@@ -84,6 +85,7 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
+      #
       # Initialize
       # Generate new state data
       #
@@ -152,7 +154,7 @@ jobs:
 
       #
       # Merge
-      # Create pull request and merge it into base ref
+      # Update remote refs along with associated objects
       #
 
       - name: "Merge"

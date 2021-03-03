@@ -19,15 +19,23 @@ variables:
 jobs:
 
 - job: pre
+
+  #
+  # Pre
+  # - Before running the resource deployment,
+  # - we need to validate the repository state
+  # - is up to date and we won't encounter conflicts.
+  #
+
   displayName: 'Pre'
   condition: ne(variables['System.PullRequest.SourceBranch'], 'refs/heads/automated')
-  timeoutInMinutes: $[variables.timeout]
   workspace:
     clean: all
   steps:
 
   #
   # Checkout
+  # Checks-out the repository
   #
 
   - checkout: self
@@ -35,19 +43,8 @@ jobs:
     persistCredentials: true
 
   #
-  # Checkout (switch)
-  #
-
-  - task: Bash@3
-    displayName: 'Checkout'
-    inputs:
-      targetType: 'inline'
-      script: |
-        git checkout -b automated
-      workingDirectory: 'AzOps-Test'
-
-  #
   # Dependencies
+  # Install required runtime modules
   #
 
   - task: PowerShell@2
@@ -60,6 +57,7 @@ jobs:
 
   #
   # Connect
+  # Authenticate Azure context
   #
 
   - task: PowerShell@2
@@ -74,6 +72,7 @@ jobs:
 
   #
   # Initialize
+  # Generate new state data
   #
 
   - task: PowerShell@2
@@ -84,10 +83,22 @@ jobs:
           Import-PSFConfig -Path settings.json -Schema MetaJson
           Initialize-AzOpsRepository
           Get-Job | Remove-Job -Force
-      workingDirectory: 'AzOps-Test'
+
+  #
+  # Add
+  # Add file content to index
+  #
+
+  - task: Bash@3
+    displayName: 'Add'
+    inputs:
+      targetType: 'inline'
+      script: |
+        git add ./azops
 
   #
   # Diff
+  # List index changes
   #
 
   - task: Bash@3
@@ -104,10 +115,10 @@ jobs:
           echo $DIFF
           echo '##vso[task.setvariable variable=state]stop'
         fi
-      workingDirectory: 'AzOps-Test'
 
   #
   # Issue
+  # Write issue and stop workflow
   #
 
   - task: Bash@3
@@ -121,19 +132,26 @@ jobs:
         --header "Content-Type: application/json" \
         --data '{ "comments": [ { "parentCommentId": 0, "content": "Hello!", "commentType": 1 } ], "status": 1 }' \
         --url https://dev.azure.com/$(organization)/$(project)/_apis/git/repositories/$(repository)/pullRequests/$(pullRequest)/threads?api-version=6.0
-      workingDirectory: 'AzOps-Test'
 
 - job: push
+
+  #
+  # Push
+  # - Before running the resource deployment,
+  # - we need to validate the repository state
+  # - is up to date and we won't encounter conflicts.
+  #
+
   displayName: 'Push'
   condition: contains(variables['state'], 'stop')
   dependsOn: pre
-  timeoutInMinutes: $[variables.timeout]
   workspace:
     clean: all
   steps:
 
   #
   # Checkout
+  # Checks-out the repository
   #
 
   - checkout: self
@@ -142,6 +160,7 @@ jobs:
 
   #
   # Dependencies
+  # Install required runtime modules
   #
 
   - task: PowerShell@2
@@ -154,6 +173,7 @@ jobs:
 
   #
   # Connect
+  # Authenticate Azure context
   #
 
   - task: PowerShell@2
@@ -168,6 +188,7 @@ jobs:
 
   #
   # Diff
+  # List index changes
   #
 
   - task: Bash@3
@@ -176,10 +197,10 @@ jobs:
       targetType: 'inline'
       script: |
         git diff origin/main --name-status > /tmp/diff.txt
-      workingDirectory: 'AzOps-Test'
 
   #
   # Deploy
+  # Initial deployment of any index changes
   #
 
   - task: PowerShell@2
@@ -192,19 +213,26 @@ jobs:
         $module = Get-Module -Name AzOps
         $module.Invoke({ Invoke-AzOpsChange -ChangeSet $diff })
         Get-Job | Remove-Job -Force
-      workingDirectory: 'AzOps-Test'
 
 - job: post
+
+  #
+  # Post
+  # - Before running the resource deployment,
+  # - we need to validate the repository state
+  # - is up to date and we won't encounter conflicts.
+  #
+
   displayName: 'Post'
   condition: contains(variables['state'], 'stop')
   dependsOn: push
-  timeoutInMinutes: $[variables.timeout]
   workspace:
     clean: all
   steps:
 
   #
   # Checkout
+  # Checks-out the repository
   #
 
   - checkout: self
@@ -213,6 +241,7 @@ jobs:
 
   #
   # Configure
+  # Set global options
   #
 
   - task: Bash@3
@@ -222,10 +251,10 @@ jobs:
       script: |
           git config user.name 'Azure DevOps'
           git config user.email 'azuredevops@microsoft.com'
-      workingDirectory: 'AzOps-Test'
 
   #
   # Dependencies
+  # Install required runtime modules
   #
 
   - task: PowerShell@2
@@ -238,6 +267,7 @@ jobs:
 
   #
   # Connect
+  # Authenticate Azure context
   #
 
   - task: PowerShell@2
@@ -252,6 +282,7 @@ jobs:
 
   #
   # Initialize
+  # Generate new state data
   #
 
   - task: PowerShell@2
@@ -261,10 +292,10 @@ jobs:
       script: |
           Import-PSFConfig -Path settings.json -Schema MetaJson
           Initialize-AzOpsRepository
-      workingDirectory: 'AzOps-Test'
 
   #
   # Add
+  # Add file content to index
   #
 
   - task: Bash@3
@@ -273,10 +304,10 @@ jobs:
       targetType: 'inline'
       script: |
         git add ./azops
-      workingDirectory: 'AzOps-Test'
 
   #
   # Commit
+  # Record changes to the repository
   #
 
   - task: Bash@3
@@ -285,10 +316,10 @@ jobs:
       targetType: 'inline'
       script: |
         git commit -m 'Automated commit'
-      workingDirectory: 'AzOps-Test'
 
   #
   # Push
+  # Update remote refs along with associated objects
   #
 
   - task: Bash@3
@@ -297,4 +328,3 @@ jobs:
       targetType: 'inline'
       script: |
         git push origin $(branch)  -f
-      workingDirectory: 'AzOps-Test'

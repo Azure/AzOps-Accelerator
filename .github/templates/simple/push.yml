@@ -53,6 +53,7 @@ jobs:
 
       #
       # Connect
+      # Authenticate Azure context
       #
 
       - name: "Connect"
@@ -70,7 +71,7 @@ jobs:
 
       #
       # Initialize
-      # Generate new state
+      # Generate new state data
       #
 
       - name: "Initialize"
@@ -142,8 +143,7 @@ jobs:
 
       #
       # Checkout
-      # - Repository (azops-test)
-      # - Path (azops-temp)
+      # Checks-out the repository
       #
 
       - name: "Checkout"
@@ -171,6 +171,7 @@ jobs:
 
       #
       # Connect
+      # Authenticate Azure context
       #
 
       - name: "Connect"
@@ -200,7 +201,7 @@ jobs:
 
       #
       # Deploy
-      #
+      # Initial deployment of any index changes
       #
 
       - name: "Deploy"
@@ -231,9 +232,7 @@ jobs:
 
       #
       # Checkout
-      # - Repository (azops-test)
-      # - Path (azops-temp)
-      # - Branch (main)
+      # Checks-out the repository
       #
 
       - name: "Checkout"
@@ -242,6 +241,18 @@ jobs:
           path: ${{ github.event.repository.name }}
           fetch-depth: 0
           ref: main
+
+      #
+      # Configure
+      # Set global options
+      #
+
+      - name: "Configure"
+        run: |
+          git config user.name github-actions
+          git config user.email action@github.com
+        shell: bash
+        working-directory: ${{ github.event.repository.name }}
 
       #
       # Dependencies
@@ -261,6 +272,7 @@ jobs:
 
       #
       # Connect
+      # Authenticate Azure context
       #
 
       - name: "Connect"
@@ -278,7 +290,7 @@ jobs:
 
       #
       # Initialize
-      # Generate new state
+      # Generate new state data
       #
 
       - name: "Initialize"
