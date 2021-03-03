@@ -29,9 +29,6 @@
         "AzOps.Core.State": "",
         "AzOps.Core.SupportPartialMgDiscovery": false,
         "AzOps.Core.TemplateParameterFileSuffix": ".parameters.json",
-        "AzOps.Core.ThrottleLimit": 10,
-        "PSFramework.Message.Info.Maximum": 1,
-        "LoggingProvider.Console.Action.Enabled": true,
-        "PSFramework.Logging.Console.Action.Style": "[%Level%] %Message%"
+        "AzOps.Core.ThrottleLimit": 10
     }
 }
