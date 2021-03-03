@@ -15,8 +15,6 @@ mkdir .github/workflows
 # Copy actions templates
 cp -R .github/templates/simple/ .github/workflows/
 
-
-
 # Remove pipelines artefacts
 rm -rf .pipelines/
 ```
@@ -26,7 +24,7 @@ rm -rf .pipelines/
 New-Item -Path ./ -Name ".github/workflows" -ItemType Directory
 
 # Copy actions templates
-Copy-Item -Path ./.github/templates/* -Destination ./.github/workflows/ -Recurse
+Copy-Item -Path ./.github/templates/simple/* -Destination ./.github/workflows/ -Recurse
 
 # Remove pipelines
 Remove-Item -Path ./.pipelines/ -Recurse -Force
@@ -45,7 +43,7 @@ Run either the `bash` or `powershell` script blocks from within the root of repo
 
 ```bash
 # Copy templates to the root
-cp -R .pipelines/templates/ .pipelines/
+cp -R .pipelines/templates/simple/ .pipelines/
 
 # Edit the following files
 .pipelines/pull.yml
@@ -57,7 +55,7 @@ rm -rf .github/
 
 ```powershell
 # Copy actions templates
-Copy-Item -Path ./.pipelines/templates/* -Destination ./.pipelines/ -Recurse
+Copy-Item -Path ./.pipelines/templates/simple/* -Destination ./.pipelines/ -Recurse
 
 # Remove pipelines
 Remove-Item -Path ./.github/ -Recurse -Force
