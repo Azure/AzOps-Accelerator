@@ -1,5 +1,5 @@
 ---
-name: "AzOps - Pull"
+name: 'AzOps - Pull'
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ jobs:
     # Pull
     #
 
-    name: "Pull"
+    name: 'Pull'
     runs-on: ubuntu-20.04
     steps:
 
@@ -21,7 +21,7 @@ jobs:
       # Checks-out the repository
       #
 
-      - name: "Checkout"
+      - name: 'Checkout'
         uses: actions/checkout@v2
         with:
           path: ${{ github.event.repository.name }}
@@ -32,7 +32,7 @@ jobs:
       # Set global options
       #
 
-      - name: "Configure"
+      - name: 'Configure'
         run: |
           git config user.name github-actions
           git config user.email action@github.com
@@ -44,7 +44,7 @@ jobs:
       # Switch branches
       #
 
-      - name: "Checkout"
+      - name: 'Checkout'
         run: |
           git checkout -b automated
         shell: bash
@@ -55,7 +55,7 @@ jobs:
       # Install required runtime modules
       #
 
-      - name: "Dependencies"
+      - name: 'Dependencies'
         run: |
           Install-Module -Name "AzOps" -AllowPrerelease -Force
           Install-Module -Name @("Az.Accounts", "Az.Billing", "Az.Resources", "PSFramework") -Force
@@ -72,7 +72,7 @@ jobs:
       # Authenticate Azure context
       #
 
-      - name: "Connect"
+      - name: 'Connect'
         run: |
           $credential = New-Object System.Management.Automation.PSCredential `
             -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
@@ -90,7 +90,7 @@ jobs:
       # Generate new state data
       #
 
-      - name: "Initialize"
+      - name: 'Initialize'
         run: |
           Import-PSFConfig -Path settings.json -Schema MetaJson
           Initialize-AzOpsRepository -Rebuild
@@ -103,14 +103,16 @@ jobs:
       # Check for data changes
       #
 
-      - name: "Status"
+      - name: 'Status'
         id: status
         run: |
           STATUS=$(git status --short)
           if [ -z "$STATUS" ]
           then
+            echo $STATUS
             echo "::set-output name=state::stop"
           else
+            echo $STATUS
             echo "::set-output name=state::continue"
           fi
         shell: bash
@@ -121,7 +123,7 @@ jobs:
       # Add file content to index
       #
 
-      - name: "Add"
+      - name: 'Add'
         if: steps.status.outputs.state == 'continue'
         run: |
           git add ./azops
@@ -133,10 +135,10 @@ jobs:
       # Record changes to the repository
       #
 
-      - name: "Commit"
+      - name: 'Commit'
         if: steps.status.outputs.state == 'continue'
         run: |
-          git commit -m 'Automated commit'
+          git commit -m "Automated commit"
         shell: bash
         working-directory: ${{ github.event.repository.name }}
 
@@ -145,7 +147,7 @@ jobs:
       # Update remote refs along with associated objects
       #
 
-      - name: "Push"
+      - name: 'Push'
         if: steps.status.outputs.state == 'continue'
         run: |
           git push origin automated -f
@@ -157,7 +159,7 @@ jobs:
       # Update remote refs along with associated objects
       #
 
-      - name: "Merge"
+      - name: 'Merge'
         if: steps.status.outputs.state == 'continue'
         run: |
           gh pr create --title "Automated State" --body "..." --base ${{ github.ref }} --head "automated"

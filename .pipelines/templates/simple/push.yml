@@ -1,5 +1,5 @@
 ---
-name: 'Push'
+name: "AzOps - Push"
 
 trigger: none
 
@@ -85,18 +85,6 @@ jobs:
           Get-Job | Remove-Job -Force
 
   #
-  # Add
-  # Add file content to index
-  #
-
-  - task: Bash@3
-    displayName: 'Add'
-    inputs:
-      targetType: 'inline'
-      script: |
-        git add ./azops
-
-  #
   # Diff
   # List index changes
   #
@@ -110,10 +98,10 @@ jobs:
         if [ -z "$DIFF" ]
         then
           echo $DIFF
-          echo '##vso[task.setvariable variable=state]continue'
+          echo "##vso[task.setvariable variable=state]continue"
         else
           echo $DIFF
-          echo '##vso[task.setvariable variable=state]stop'
+          echo "##vso[task.setvariable variable=state]stop"
         fi
 
   #
@@ -249,8 +237,8 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-          git config user.name 'Azure DevOps'
-          git config user.email 'azuredevops@microsoft.com'
+          git config user.name "Azure DevOps"
+          git config user.email "azuredevops@microsoft.com"
 
   #
   # Dependencies
@@ -315,7 +303,7 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        git commit -m 'Automated commit'
+        git commit -m "Automated commit"
 
   #
   # Push

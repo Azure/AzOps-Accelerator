@@ -40,8 +40,8 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-          git config user.name 'Azure DevOps'
-          git config user.email 'azuredevops@microsoft.com'
+          git config user.name "Azure DevOps"
+          git config user.email "azuredevops@microsoft.com"
 
   #
   # Checkout
@@ -110,9 +110,11 @@ jobs:
         STATUS=$(git status --short)
         if [ -z "$STATUS" ]
         then
-          echo '##vso[task.setvariable variable=state]continue'
+          echo $STATUS
+          echo "##vso[task.setvariable variable=state]continue"
         else
-          echo '##vso[task.setvariable variable=state]stop'
+          echo $STATUS
+          echo "##vso[task.setvariable variable=state]stop"
         fi
 
   #
@@ -139,7 +141,7 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        git commit -m 'Automated commit'
+        git commit -m "Automated commit"
 
   #
   # Push
