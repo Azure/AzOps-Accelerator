@@ -31,7 +31,6 @@ jobs:
       - name: 'Checkout'
         uses: actions/checkout@v2
         with:
-          path: ${{ github.event.repository.name }}
           fetch-depth: 0
           ref: main
 
@@ -81,7 +80,6 @@ jobs:
           Initialize-AzOpsRepository -Rebuild
           Get-Job | Remove-Job -Force
         shell: pwsh
-        working-directory: ${{ github.event.repository.name }}
 
       #
       # Diff
@@ -101,7 +99,6 @@ jobs:
             echo "::set-output name=state::continue"
           fi
         shell: bash
-        working-directory: ${{ github.event.repository.name }}
 
       #
       # Issue
@@ -109,11 +106,10 @@ jobs:
       #
 
       - name: 'Issue'
-        if: steps.diff.outputs.state == 'stop'
+        if: steps.diff.outputs.state == 'continue'
         run: |
           gh pr comment ${{ github.event.pull_request.number }} --body "Job blocked...."
         shell: bash
-        working-directory: ${{ github.event.repository.name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -141,7 +137,6 @@ jobs:
       - name: 'Checkout'
         uses: actions/checkout@v2
         with:
-          path: ${{ github.event.repository.name }}
           fetch-depth: 0
 
       #
@@ -187,9 +182,9 @@ jobs:
       - name: 'Diff'
         id: diff
         run: |
+          echo $(git diff origin/main --name-status)
           git diff origin/main --name-status > /tmp/diff.txt
         shell: bash
-        working-directory: ${{ github.event.repository.name }}
 
       #
       # Deploy
@@ -198,13 +193,13 @@ jobs:
 
       - name: 'Deploy'
         run: |
+          Initialize-AzOpsEnvironment
           Import-PSFConfig -Path settings.json -Schema MetaJson
           $diff = Get-Content -Path /tmp/diff.txt
           $module = Get-Module -Name AzOps
           $module.Invoke({ Invoke-AzOpsChange -ChangeSet $diff })
           Get-Job | Remove-Job -Force
         shell: pwsh
-        working-directory: ${{ github.event.repository.name }}
 
   post:
 
@@ -230,9 +225,7 @@ jobs:
       - name: 'Checkout'
         uses: actions/checkout@v2
         with:
-          path: ${{ github.event.repository.name }}
           fetch-depth: 0
-          ref: main
 
       #
       # Configure
@@ -244,7 +237,15 @@ jobs:
           git config user.name github-actions
           git config user.email action@github.com
         shell: bash
-        working-directory: ${{ github.event.repository.name }}
+
+      #
+      # Switch
+      # Change working branch
+      #
+
+      - name: 'Switch'
+        run: |
+          git switch -c ${{ github.head_ref }}
 
       #
       # Dependencies
@@ -253,6 +254,7 @@ jobs:
 
       - name: 'Dependencies'
         run: |
+          Install-Module -Name "AzOps" -AllowPrerelease -Force
           Install-Module -Name @("Az.Accounts", "Az.Billing", "Az.Resources", "PSFramework") -Force
         shell: pwsh
         env:
@@ -291,7 +293,6 @@ jobs:
           Initialize-AzOpsRepository -Rebuild
           Get-Job | Remove-Job -Force
         shell: pwsh
-        working-directory: ${{ github.event.repository.name }}
 
       #
       # Add
@@ -300,10 +301,9 @@ jobs:
 
       - name: 'Add'
         run: |
-          git add ./state
+          git add ./azops
           git status --short
         shell: bash
-        working-directory: ${{ github.event.repository.name }}
 
       #
       # Commit
@@ -314,7 +314,6 @@ jobs:
         run: |
           git commit -m "Automated commit"
         shell: bash
-        working-directory: ${{ github.event.repository.name }}
 
       #
       # Push
@@ -323,7 +322,6 @@ jobs:
 
       - name: 'Push'
         run: |
-          git push origin automated
+          git push origin ${{ github.head_ref }}
         shell: bash
-        working-directory: ${{ github.event.repository.name }}
 
