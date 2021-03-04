@@ -31,9 +31,6 @@ on:
     types:
       - "Azure Activity Logs"
 
-on:
-  workflow_dispatch:
-
 jobs:
 
   pull:
