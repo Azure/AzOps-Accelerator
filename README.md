@@ -68,6 +68,28 @@ After running the script blocks, the following pipeline variables will need to b
 - ARM_TENANT_ID
 - ARM_SUBSCRIPTION_ID
 
+### Configure your repo to update changes from upstream
+
+1. Add upstream repo to your local repository to get latest changes
+
+Follow these steps in order to synchronize the latest changes from the upstream repo into your local repositories.
+
+Run the following git commands once you change your directory to your local fork to add a reference to the upstream repo
+
+```shell
+git remote -v
+git remote add upstream https://github.com/Azure/AzOps-Accelerator.git
+git remote -v
+```
+
+Execute the following git commands when you want to synchronize changes from upstream repo into your local fork:
+
+```shell
+git fetch upstream
+git pull upstream main --allow-unrelated-histories
+```
+
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
