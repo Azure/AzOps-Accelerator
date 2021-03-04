@@ -1,0 +1,326 @@
+---
+name: 'AzOps - Push'
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+
+  pre:
+
+    #
+    # Pre
+    # - Before running the resource deployment,
+    # - we need to validate the repository state
+    # - is up to date and we won't encounter conflicts.
+    #
+
+    name: 'Pre'
+    runs-on: ubuntu-20.04
+    outputs:
+      diff: ${{ steps.diff.outputs.state }}
+
+    steps:
+
+      #
+      # Checkout
+      # Checks-out the repository
+      #
+
+      - name: 'Checkout'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: main
+
+      #
+      # Dependencies
+      # Install required runtime modules
+      #
+
+      - name: 'Dependencies'
+        run: |
+          Install-Module -Name "AzOps" -AllowPrerelease -Force
+          Install-Module -Name @("Az.Accounts", "Az.Billing", "Az.Resources", "PSFramework") -Force
+        shell: pwsh
+        env:
+          AZOPS: 1.0.0
+          AZ_ACCOUNTS: 2.2.5
+          AZ_BILLING: 2.0.0
+          AZ_RESOURCES: 3.2.1
+          PSFRAMEWORK: 1.5.17
+
+      #
+      # Connect
+      # Authenticate Azure context
+      #
+
+      - name: 'Connect'
+        run: |
+          $credential = New-Object System.Management.Automation.PSCredential `
+            -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
+          Connect-AzAccount `
+            -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
+        shell: pwsh
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+
+      #
+      # Initialize
+      # Generate new state data
+      #
+
+      - name: 'Initialize'
+        run: |
+          Import-PSFConfig -Path settings.json -Schema MetaJson
+          Initialize-AzOpsRepository -Rebuild
+          Get-Job | Remove-Job -Force
+        shell: pwsh
+
+      #
+      # Diff
+      # List index changes
+      #
+
+      - name: 'Diff'
+        id: diff
+        run: |
+          DIFF=$(git diff --ignore-space-at-eol --name-status)
+          if [ -z "$DIFF" ]
+          then
+            echo $DIFF
+            echo "::set-output name=state::stop"
+          else
+            echo $DIFF
+            echo "::set-output name=state::continue"
+          fi
+        shell: bash
+
+      #
+      # Issue
+      # Write issue and stop workflow
+      #
+
+      - name: 'Issue'
+        if: steps.diff.outputs.state == 'continue'
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "Job blocked...."
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  push:
+
+    #
+    # Push
+    # - Before running the resource deployment,
+    # - we need to validate the repository state
+    # - is up to date and we won't encounter conflicts.
+    #
+
+    name: 'Push'
+    runs-on: ubuntu-20.04
+    needs: pre
+    if: needs.pre.outputs.diff == 'stop'
+
+    steps:
+
+      #
+      # Checkout
+      # Checks-out the repository
+      #
+
+      - name: 'Checkout'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      #
+      # Dependencies
+      # Install required runtime modules
+      #
+
+      - name: 'Dependencies'
+        run: |
+          Install-Module -Name "AzOps" -AllowPrerelease -Force
+          Install-Module -Name @("Az.Accounts", "Az.Billing", "Az.Resources", "PSFramework") -Force
+        shell: pwsh
+        env:
+          AZOPS: 1.0.0
+          AZ_ACCOUNTS: 2.2.5
+          AZ_BILLING: 2.0.0
+          AZ_RESOURCES: 3.2.1
+          PSFRAMEWORK: 1.5.17
+
+      #
+      # Connect
+      # Authenticate Azure context
+      #
+
+      - name: 'Connect'
+        run: |
+          $credential = New-Object System.Management.Automation.PSCredential `
+            -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
+          Connect-AzAccount `
+            -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
+        shell: pwsh
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+
+      #
+      # Diff
+      # List index changes
+      #
+
+      - name: 'Diff'
+        id: diff
+        run: |
+          echo $(git diff origin/main --name-status)
+          git diff origin/main --name-status > /tmp/diff.txt
+        shell: bash
+
+      #
+      # Deploy
+      # Initial deployment of any index changes
+      #
+
+      - name: 'Deploy'
+        run: |
+          Initialize-AzOpsEnvironment
+          Import-PSFConfig -Path settings.json -Schema MetaJson
+          $diff = Get-Content -Path /tmp/diff.txt
+          $module = Get-Module -Name AzOps
+          $module.Invoke({ Invoke-AzOpsChange -ChangeSet $diff })
+          Get-Job | Remove-Job -Force
+        shell: pwsh
+
+  post:
+
+    #
+    # Post
+    # - Before running the resource deployment,
+    # - we need to validate the repository state
+    # - is up to date and we won't encounter conflicts.
+    #
+
+    name: 'Post'
+    runs-on: ubuntu-20.04
+    needs: push
+    if: needs.pre.outputs.diff == 'stop'
+
+    steps:
+
+      #
+      # Checkout
+      # Checks-out the repository
+      #
+
+      - name: 'Checkout'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      #
+      # Configure
+      # Set global options
+      #
+
+      - name: 'Configure'
+        run: |
+          git config user.name github-actions
+          git config user.email action@github.com
+        shell: bash
+
+      #
+      # Switch
+      # Change working branch
+      #
+
+      - name: 'Switch'
+        run: |
+          git switch -c ${{ github.head_ref }}
+
+      #
+      # Dependencies
+      # Install required runtime modules
+      #
+
+      - name: 'Dependencies'
+        run: |
+          Install-Module -Name "AzOps" -AllowPrerelease -Force
+          Install-Module -Name @("Az.Accounts", "Az.Billing", "Az.Resources", "PSFramework") -Force
+        shell: pwsh
+        env:
+          AZOPS: 1.0.0
+          AZ_ACCOUNTS: 2.2.5
+          AZ_BILLING: 2.0.0
+          AZ_RESOURCES: 3.2.1
+          PSFRAMEWORK: 1.5.17
+
+      #
+      # Connect
+      # Authenticate Azure context
+      #
+
+      - name: 'Connect'
+        run: |
+          $credential = New-Object System.Management.Automation.PSCredential `
+            -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
+          Connect-AzAccount `
+            -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
+        shell: pwsh
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+
+      #
+      # Initialize
+      # Generate new state data
+      #
+
+      - name: 'Initialize'
+        run: |
+          Import-PSFConfig -Path settings.json -Schema MetaJson
+          Initialize-AzOpsRepository -Rebuild
+          Get-Job | Remove-Job -Force
+        shell: pwsh
+
+      #
+      # Add
+      # Add file content to index
+      #
+
+      - name: 'Add'
+        run: |
+          git add ./azops
+          git status --short
+        shell: bash
+
+      #
+      # Commit
+      # Record changes to the repository
+      #
+
+      - name: 'Commit'
+        run: |
+          git commit -m "Automated commit"
+        shell: bash
+
+      #
+      # Push
+      # Update remote refs along with associated objects
+      #
+
+      - name: 'Push'
+        run: |
+          git push origin ${{ github.head_ref }}
+        shell: bash

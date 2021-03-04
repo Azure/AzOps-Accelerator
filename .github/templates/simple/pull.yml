@@ -1,0 +1,191 @@
+---
+name: 'AzOps - Pull'
+
+on:
+
+  #
+  # Schedule
+  # This is an [optional] event to get latest Azure 
+  # hierarchy of Management Grou and Subscription in 
+  # your Git in recurring manner. Default is every 6 hours
+  #
+  # Adjust frequency based on your organization need
+  #
+
+  schedule:
+    - cron: "0 */6 * * *"
+  
+  #
+  # Workflow Dispatch
+  # This is to invoke this action from portal
+  #
+  
+  workflow_dispatch:
+
+  #
+  # Repository Dispatch
+  # To invoke this action based on event/webhook
+  #
+  
+  repository_dispatch:
+    types:
+      - "Azure Activity Logs"
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  pull:
+
+    #
+    # Pull
+    #
+
+    name: 'Pull'
+    runs-on: ubuntu-20.04
+    steps:
+
+      #
+      # Checkout
+      # Checks-out the repository
+      #
+
+      - name: 'Checkout'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      #
+      # Configure
+      # Set global options
+      #
+
+      - name: 'Configure'
+        run: |
+          git config user.name github-actions
+          git config user.email action@github.com
+        shell: bash
+
+      #
+      # Checkout
+      # Switch branches
+      #
+
+      - name: 'Checkout'
+        run: |
+          git checkout -b automated
+        shell: bash
+
+      #
+      # Dependencies
+      # Install required runtime modules
+      #
+
+      - name: 'Dependencies'
+        run: |
+          Install-Module -Name "AzOps" -AllowPrerelease -Force
+          Install-Module -Name @("Az.Accounts", "Az.Billing", "Az.Resources", "PSFramework") -Force
+        shell: pwsh
+        env:
+          AZOPS: 1.0.0
+          AZ_ACCOUNTS: 2.2.5
+          AZ_BILLING: 2.0.0
+          AZ_RESOURCES: 3.2.1
+          PSFRAMEWORK: 1.5.17
+
+      #
+      # Connect
+      # Authenticate Azure context
+      #
+
+      - name: 'Connect'
+        run: |
+          $credential = New-Object System.Management.Automation.PSCredential `
+            -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
+          Connect-AzAccount `
+            -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
+        shell: pwsh
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+
+      #
+      # Initialize
+      # Generate new state data
+      #
+
+      - name: 'Initialize'
+        run: |
+          Import-PSFConfig -Path settings.json -Schema MetaJson
+          Initialize-AzOpsRepository -Rebuild
+          Get-Job | Remove-Job -Force
+        shell: pwsh
+
+      #
+      # Status
+      # Check for data changes
+      #
+
+      - name: 'Status'
+        id: status
+        run: |
+          STATUS=$(git status --short)
+          if [ -z "$STATUS" ]
+          then
+            echo $STATUS
+            echo "::set-output name=state::stop"
+          else
+            echo $STATUS
+            echo "::set-output name=state::continue"
+          fi
+        shell: bash
+
+      #
+      # Add
+      # Add file content to index
+      #
+
+      - name: 'Add'
+        if: steps.status.outputs.state == 'continue'
+        run: |
+          git add ./azops
+        shell: bash
+
+      #
+      # Commit
+      # Record changes to the repository
+      #
+
+      - name: 'Commit'
+        if: steps.status.outputs.state == 'continue'
+        run: |
+          git commit -m "Automated commit"
+        shell: bash
+
+      #
+      # Push
+      # Update remote refs along with associated objects
+      #
+
+      - name: 'Push'
+        if: steps.status.outputs.state == 'continue'
+        run: |
+          git push origin automated -f
+        shell: bash
+
+      #
+      # Merge
+      # Update remote refs along with associated objects
+      #
+
+      - name: 'Merge'
+        if: steps.status.outputs.state == 'continue'
+        run: |
+          gh pr create --title "Automated State" --body "..." --base ${{ github.ref }} --head "automated"
+          gh pr merge "automated" --squash --delete-branch
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
