@@ -1,4 +1,4 @@
-# AzOps-Starter
+# AzOps Starter
 
 ## Configuration
 
