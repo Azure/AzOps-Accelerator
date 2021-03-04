@@ -131,7 +131,7 @@ jobs:
   #
 
   displayName: 'Push'
-  condition: contains(variables['state'], 'stop')
+  condition: contains(variables['state'], 'continue')
   dependsOn: pre
   workspace:
     clean: all
@@ -196,6 +196,7 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
+        Initialize-AzOpsEnvironment
         Import-PSFConfig -Path settings.json -Schema MetaJson
         $diff = Get-Content -Path /tmp/diff.txt
         $module = Get-Module -Name AzOps
@@ -212,7 +213,7 @@ jobs:
   #
 
   displayName: 'Post'
-  condition: contains(variables['state'], 'stop')
+  condition: contains(variables['state'], 'continue')
   dependsOn: push
   workspace:
     clean: all
@@ -239,6 +240,18 @@ jobs:
       script: |
           git config user.name "Azure DevOps"
           git config user.email "azuredevops@microsoft.com"
+
+  #
+  # Switch
+  # Change working branch
+  #
+
+  - task: Bash@3
+    displayName: 'Switch'
+    inputs:
+      targetType: 'inline'
+      script: |
+        git switch -c $(branch)
 
   #
   # Dependencies
