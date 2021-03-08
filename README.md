@@ -1,72 +1,15 @@
 # AzOps Accelerator
 
-## Configuration
+This template repository is for deploying a new AzOps environment.
 
-The following script blocks and steps will prepare the repository for Push and Pull operating models.
+## Guides
 
-### GitHub Actions
-
-Run either the `bash` or `powershell` script blocks from within the root of repository.
-
-```bash
-# Create workflows directory
-mkdir .github/workflows
-
-# Copy actions templates
-cp -R .github/templates/simple/ .github/workflows/
-
-# Remove pipelines artefacts
-rm -rf .pipelines/
-```
-
-```powershell
-# Create workflows directory
-New-Item -Path ./ -Name ".github/workflows" -ItemType Directory
-
-# Copy actions templates
-Copy-Item -Path ./.github/templates/simple/* -Destination ./.github/workflows/ -Recurse
-
-# Remove pipelines
-Remove-Item -Path ./.pipelines/ -Recurse -Force
-```
-
-After running the script blocks, the following repository secrets will need to be created.
-
-- ARM_CLIENT_ID
-- ARM_CLIENT_SECRET
-- ARM_TENANT_ID
-- ARM_SUBSCRIPTION_ID
-
-### Azure Pipelines
-
-Run either the `bash` or `powershell` script blocks from within the root of repository.
-
-```bash
-# Copy templates to the root
-cp -R .pipelines/templates/simple/ .pipelines/
-
-# Edit the following files
-.pipelines/pull.yml
-.pipelines/push.yml
-
-# Remove Actions
-rm -rf .github/
-```
-
-```powershell
-# Copy actions templates
-Copy-Item -Path ./.pipelines/templates/simple/* -Destination ./.pipelines/ -Recurse
-
-# Remove pipelines
-Remove-Item -Path ./.github/ -Recurse -Force
-```
-
-After running the script blocks, the following pipeline variables will need to be created.
-
-- ARM_CLIENT_ID
-- ARM_CLIENT_SECRET
-- ARM_TENANT_ID
-- ARM_SUBSCRIPTION_ID
+* [Introduction](https://github.com/azure/azops-accelerator/wiki/introduction)
+* [Getting Started](https://github.com/azure/azops-accelerator/wiki/getting-started)
+  * [GitHub Actions](https://github.com/azure/azops-accelerator/wiki/github-actions)
+  * [Azure Pipelines](https://github.com/azure/azops-accelerator/wiki/azure-pipelines)
+* [Troubleshooting](https://github.com/azure/azops-accelerator/wiki/troubleshooting)
+* [FAQ](https://github.com/azure/azops-accelerator/wiki/frequently-asked-questions)
 
 ## Contributing
 
