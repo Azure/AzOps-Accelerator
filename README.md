@@ -2,9 +2,10 @@
 
 This repository is for...
 
-## Documentation
+## Guides
 
 * [Home](https://github.com/azure/azops-accelerator/wiki/home)
+* [Introduction](https://github.com/azure/azops-accelerator/wiki/introduction)
 * [Getting Started](https://github.com/azure/azops-accelerator/wiki/getting-started)
   * [GitHub Actions](https://github.com/azure/azops-accelerator/wiki/github-actions)
   * [Azure Pipelines](https://github.com/azure/azops-accelerator/wiki/azure-pipelines)
