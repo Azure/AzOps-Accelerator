@@ -6,7 +6,7 @@ on:
   #
   # Schedule
   # This is an [optional] event to get latest Azure
-  # hierarchy of Management Grou and Subscription in
+  # hierarchy of Management Group and Subscription in
   # your Git in recurring manner. Default is every 6 hours
   #
   # Adjust frequency based on your organization need
