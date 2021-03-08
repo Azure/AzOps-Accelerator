@@ -2,8 +2,40 @@
 name: 'AzOps - Pull'
 
 on:
+<<<<<<< HEAD
   workflow_dispatch:
 
+=======
+
+  #
+  # Schedule
+  # This is an [optional] event to get latest Azure 
+  # hierarchy of Management Grou and Subscription in 
+  # your Git in recurring manner. Default is every 6 hours
+  #
+  # Adjust frequency based on your organization need
+  #
+
+  schedule:
+    - cron: "0 */6 * * *"
+  
+  #
+  # Workflow Dispatch
+  # This is to invoke this action from portal
+  #
+  
+  workflow_dispatch:
+
+  #
+  # Repository Dispatch
+  # To invoke this action based on event/webhook
+  #
+  
+  repository_dispatch:
+    types:
+      - "Azure Activity Logs"
+
+>>>>>>> main
 jobs:
 
   pull:
