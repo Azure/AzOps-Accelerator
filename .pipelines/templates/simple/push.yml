@@ -8,14 +8,6 @@ trigger: none
 pool:
   name: 'Azure Self-hosted Pipelines'
 
-variables:
-  organization: 'lytill'
-  project: 'azops-test'
-  repository: 'azops-test'
-  branch: $(Build.SourceBranchName)
-  pullRequest: $(System.PullRequest.PullRequestId)
-  timeout: 30
-
 jobs:
 
 - job: pre
@@ -28,7 +20,7 @@ jobs:
   #
 
   displayName: 'Pre'
-  condition: ne(variables['System.PullRequest.SourceBranch'], 'refs/heads/automated')
+  condition: and(eq(variables['Build.Reason'], 'PullRequest'), ne(variables['System.PullRequest.SourceBranch'], 'refs/heads/automated'))
   workspace:
     clean: all
   steps:
@@ -81,7 +73,7 @@ jobs:
       targetType: 'inline'
       script: |
           Import-PSFConfig -Path settings.json -Schema MetaJson
-          Initialize-AzOpsRepository
+          Initialize-AzOpsRepository -Rebuild
           Get-Job | Remove-Job -Force
 
   #
@@ -91,6 +83,7 @@ jobs:
 
   - task: Bash@3
     displayName: 'Diff'
+    name: diff
     inputs:
       targetType: 'inline'
       script: |
@@ -98,10 +91,10 @@ jobs:
         if [ -z "$DIFF" ]
         then
           echo $DIFF
-          echo "##vso[task.setvariable variable=state]continue"
+          echo "##vso[task.setvariable variable=state;isOutput=true]continue"
         else
           echo $DIFF
-          echo "##vso[task.setvariable variable=state]stop"
+          echo "##vso[task.setvariable variable=state;isOutput=true]stop"
         fi
 
   #
@@ -111,7 +104,7 @@ jobs:
 
   - task: Bash@3
     displayName: 'Issue'
-    condition: contains(variables['state'], 'stop')
+    condition: contains(variables['diff.state'], 'stop')
     inputs:
       targetType: 'inline'
       script: |
@@ -119,19 +112,19 @@ jobs:
         --header "Authorization: Bearer $(System.AccessToken)" \
         --header "Content-Type: application/json" \
         --data '{ "comments": [ { "parentCommentId": 0, "content": "Hello!", "commentType": 1 } ], "status": 1 }' \
-        --url https://dev.azure.com/$(organization)/$(project)/_apis/git/repositories/$(repository)/pullRequests/$(pullRequest)/threads?api-version=6.0
+        --url $(System.CollectionUri)/$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.Name)/pullRequests/$(System.PullRequest.PullRequestId)/threads?api-version=6.0
 
 - job: push
 
   #
   # Push
-  # - Before running the resource deployment,
-  # - we need to validate the repository state
-  # - is up to date and we won't encounter conflicts.
+  # -
+  # -
+  # -
   #
 
   displayName: 'Push'
-  condition: contains(variables['state'], 'continue')
+  condition: contains(dependencies.pre.outputs['diff.state'], 'continue')
   dependsOn: pre
   workspace:
     clean: all
@@ -196,8 +189,8 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        Initialize-AzOpsEnvironment
         Import-PSFConfig -Path settings.json -Schema MetaJson
+        Initialize-AzOpsEnvironment
         $diff = Get-Content -Path /tmp/diff.txt
         $module = Get-Module -Name AzOps
         $module.Invoke({ Invoke-AzOpsChange -ChangeSet $diff })
@@ -207,13 +200,13 @@ jobs:
 
   #
   # Post
-  # - Before running the resource deployment,
-  # - we need to validate the repository state
-  # - is up to date and we won't encounter conflicts.
+  # -
+  # -
+  # -
   #
 
   displayName: 'Post'
-  condition: contains(variables['state'], 'continue')
+  condition: contains(dependencies.pre.outputs['diff.state'], 'continue')
   dependsOn: push
   workspace:
     clean: all
@@ -251,7 +244,8 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        git switch -c $(branch)
+        sourceBranchName=$(echo $(System.PullRequest.SourceBranch) | sed 's:refs/heads/::')
+        git switch -c $sourceBranchName
 
   #
   # Dependencies
@@ -292,7 +286,8 @@ jobs:
       targetType: 'inline'
       script: |
           Import-PSFConfig -Path settings.json -Schema MetaJson
-          Initialize-AzOpsRepository
+          Initialize-AzOpsRepository -Rebuild
+          Get-Job | Remove-Job -Force
 
   #
   # Add
@@ -316,7 +311,7 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        git commit -m "Automated commit"
+        git commit -m "Automated commit" -m "[skip ci]"
 
   #
   # Push
@@ -328,4 +323,5 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        git push origin $(branch)  -f
+        sourceBranchName=$(echo $(System.PullRequest.SourceBranch) | sed 's:refs/heads/::')
+        git push origin $sourceBranchName  -f
