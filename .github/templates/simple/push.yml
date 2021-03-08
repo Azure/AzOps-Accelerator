@@ -2,7 +2,20 @@
 name: 'AzOps - Push'
 
 on:
+
+  #
+  # Workflow Dispatch
+  # This is to invoke this action from portal
+  #
+
   workflow_dispatch:
+
+  #
+  # Pull Request
+  # Automated workflow trigger when a pull request
+  # is created within the repository.
+  #
+
   pull_request:
 
 jobs:
