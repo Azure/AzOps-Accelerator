@@ -1,6 +1,6 @@
 # AzOps Accelerator
 
-This repository is for...
+This template repository is for deploying a new AzOps environment.
 
 ## Guides
 
