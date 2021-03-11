@@ -5,11 +5,17 @@ This template repository is for deploying a new AzOps environment.
 ## Guides
 
 * [Introduction](https://github.com/azure/azops-accelerator/wiki/introduction)
+* [Prerequisites](https://github.com/azure/azops-accelerator/wiki/prerequisites)
 * [Getting Started](https://github.com/azure/azops-accelerator/wiki/getting-started)
   * [GitHub Actions](https://github.com/azure/azops-accelerator/wiki/github-actions)
   * [Azure Pipelines](https://github.com/azure/azops-accelerator/wiki/azure-pipelines)
+* [Templates](https://github.com/azure/azops-accelerator/wiki/templates)
+  * [Pull](https://github.com/azure/azops-accelerator/wiki/pull)
+  * [Push](https://github.com/azure/azops-accelerator/wiki/push)
+* [Private Feeds](https://github.com/azure/azops-accelerator/wiki/private-feeds)
 * [Troubleshooting](https://github.com/azure/azops-accelerator/wiki/troubleshooting)
 * [FAQ](https://github.com/azure/azops-accelerator/wiki/frequently-asked-questions)
+
 
 ## Contributing
 
