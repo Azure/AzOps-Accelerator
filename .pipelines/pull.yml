@@ -1,12 +1,32 @@
 ---
 name: 'AzOps - Pull'
 
+#
+# Triggers
+# Automated triggers are configured via Branch Policies
+# within Azure Pipelines
+#
+
 trigger: none
 
-# Temporary
+  #
+  # Schedule
+  # This is an [optional] event to get latest Azure
+  # hierarchy of Management Group and Subscription in
+  # your Git in recurring manner. Default is every 6 hours
+  #
+  # Adjust frequency based on your organization need
+  #
+
+schedules:
+  - cron: "0 */6 * * *"
+    branches:
+      include:
+        - main
+    always: true
 
 pool:
-  name: 'Azure Self-hosted Pipelines'
+  vmImage: "ubuntu-20.04"
 
 jobs:
 

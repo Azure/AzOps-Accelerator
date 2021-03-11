@@ -1,12 +1,16 @@
 ---
-name: "AzOps - Push"
+name: 'AzOps - Push'
+
+#
+# Triggers
+# Automated triggers are configured via Branch Policies
+# within Azure Pipelines
+#
 
 trigger: none
 
-# Temporary
-
 pool:
-  name: 'Azure Self-hosted Pipelines'
+  vmImage: 'ubuntu-20.04'
 
 jobs:
 
