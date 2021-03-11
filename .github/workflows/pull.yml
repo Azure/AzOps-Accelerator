@@ -31,7 +31,8 @@ on:
 
   repository_dispatch:
     types:
-      - "Azure Activity Logs"
+      - "Enterprise-Scale Deployment"
+      - "Enterprise-Scale Event"
 
 jobs:
 
