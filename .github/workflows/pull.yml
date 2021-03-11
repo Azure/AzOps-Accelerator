@@ -28,10 +28,13 @@ on:
   # could be from an activity logs when a specific condition
   # is met and triggered
   #
+  # TODO: PR (22) Remove dispatch type (activity-logs)
+  #
 
   repository_dispatch:
     types:
-      - "Azure Activity Logs"
+
+      - "Azure Activity Logs" 
       - "Enterprise-Scale Deployment"
       - "Enterprise-Scale Event"
 
