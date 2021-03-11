@@ -25,8 +25,6 @@ jobs:
 
   displayName: 'Pre'
   condition: and(eq(variables['Build.Reason'], 'PullRequest'), ne(variables['System.PullRequest.SourceBranch'], 'refs/heads/automated'))
-  workspace:
-    clean: all
   steps:
 
   #
@@ -130,8 +128,6 @@ jobs:
   displayName: 'Push'
   condition: contains(dependencies.pre.outputs['diff.state'], 'continue')
   dependsOn: pre
-  workspace:
-    clean: all
   steps:
 
   #
@@ -212,8 +208,6 @@ jobs:
   displayName: 'Post'
   condition: contains(dependencies.pre.outputs['diff.state'], 'continue')
   dependsOn: push
-  workspace:
-    clean: all
   steps:
 
   #

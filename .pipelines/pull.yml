@@ -37,8 +37,6 @@ jobs:
   #
 
   displayName: 'Pull'
-  workspace:
-        clean: all
   steps:
 
   #
