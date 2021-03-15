@@ -112,7 +112,7 @@ jobs:
       targetType: 'inline'
       script: |
           Import-PSFConfig -Path settings.json -Schema MetaJson
-          Initialize-AzOpsRepository
+          Initialize-AzOpsRepository -Rebuild
           Get-Job | Remove-Job -Force
 
   #
