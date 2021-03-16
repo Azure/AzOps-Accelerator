@@ -110,11 +110,12 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
+        URL="$(System.CollectionUri)/$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.Name)/pullRequests/$(System.PullRequest.PullRequestId)/threads?api-version=6.0"
         curl --request POST \
         --header "Authorization: Bearer $(System.AccessToken)" \
         --header "Content-Type: application/json" \
         --data '{ "comments": [ { "parentCommentId": 0, "content": "Hello!", "commentType": 1 } ], "status": 1 }' \
-        --url $(System.CollectionUri)/$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.Name)/pullRequests/$(System.PullRequest.PullRequestId)/threads?api-version=6.0
+        --url "$( echo "$URL" | sed 's/ /%20/g' )"
 
 - job: push
 
