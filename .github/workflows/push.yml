@@ -20,6 +20,7 @@ on:
 
 env:
   strict_mode: false
+  auto_merge: true
 
 jobs:
 
@@ -76,7 +77,7 @@ jobs:
               Install-Module @module -Force -Verbose
           }
         shell: pwsh
-        if: env.strict_mode == true
+        if: env.strict_mode == 'true'
 
       #
       # Connect
@@ -88,7 +89,7 @@ jobs:
           $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
           Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
         shell: pwsh
-        if: env.strict_mode == true
+        if: env.strict_mode == 'true'
 
       #
       # Initialize
@@ -101,7 +102,7 @@ jobs:
           Initialize-AzOpsRepository -Rebuild
           Get-Job | Remove-Job -Force
         shell: pwsh
-        if: env.strict_mode == true
+        if: env.strict_mode == 'true'
 
       #
       # Issue
@@ -231,6 +232,7 @@ jobs:
       ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
 
@@ -338,3 +340,14 @@ jobs:
         run: |
           git push origin ${{ github.head_ref }}
         shell: bash
+
+      #
+      # Merge
+      # Automatically merge the Pull Request into base
+      #
+
+      - name: 'Merge'
+        run: |
+          gh pr merge ${{ github.event.pull_request.head.ref }} --squash --delete-branch
+        shell: bash
+        if: env.auto_merge == 'true'

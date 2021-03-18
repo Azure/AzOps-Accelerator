@@ -187,7 +187,7 @@ jobs:
 
       #
       # Merge
-      # Update remote refs along with associated objects
+      # Automatically merge the head branch into base
       #
 
       - name: 'Merge'
