@@ -23,10 +23,10 @@
         "AzOps.Core.OfferType": "MS-AZR-0017P",
         "AzOps.Core.PartialMgDiscoveryRoot": [],
         "AzOps.Core.SkipPolicy": false,
-        "AzOps.Core.SkipResourceGroup": true,
+        "AzOps.Core.SkipResourceGroup": false,
+        "AzOps.Core.SubscriptionsToIncludeResourceGroups": "*",
         "AzOps.Core.SkipRole": false,
-        "AzOps.Core.State": "",
-        "AzOps.Core.StateConfig": "",
+        "AzOps.Core.State": ".",
         "AzOps.Core.SupportPartialMgDiscovery": false,
         "AzOps.Core.TemplateParameterFileSuffix": ".parameters.json",
         "AzOps.Core.ThrottleLimit": 10
