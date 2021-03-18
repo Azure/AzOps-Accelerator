@@ -13,9 +13,10 @@ This template repository is for getting started with the AzOps integrated CI/CD 
   * [Pull](https://github.com/azure/azops-accelerator/wiki/pull)
   * [Push](https://github.com/azure/azops-accelerator/wiki/push)
 * [Private Feeds](https://github.com/azure/azops-accelerator/wiki/private-feeds)
+  * [Azure Artifacts](https://github.com/azure/azops-accelerator/wiki/azure-artifacts)
+  * [GitHub Packages](https://github.com/azure/azOps-accelerator/wiki/GitHub-Packages)
 * [Troubleshooting](https://github.com/azure/azops-accelerator/wiki/troubleshooting)
 * [FAQ](https://github.com/azure/azops-accelerator/wiki/frequently-asked-questions)
-
 
 ## Contributing
 
