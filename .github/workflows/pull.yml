@@ -48,6 +48,14 @@ jobs:
 
     name: 'Pull'
     runs-on: ubuntu-20.04
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
 
       #
@@ -108,16 +116,9 @@ jobs:
 
       - name: 'Connect'
         run: |
-          $credential = New-Object System.Management.Automation.PSCredential `
-            -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
-          Connect-AzAccount `
-            -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
+          $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
+          Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
         shell: pwsh
-        env:
-          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
       #
       # Initialize
@@ -140,6 +141,7 @@ jobs:
         id: status
         run: |
           STATUS=$(git status --short)
+          echo $STATUS
           if [ -z "$STATUS" ]
           then
             echo $STATUS
@@ -167,10 +169,10 @@ jobs:
       #
 
       - name: 'Commit'
-        if: steps.status.outputs.state == 'continue'
         run: |
           git commit -m "Automated commit"
         shell: bash
+        if: steps.status.outputs.state == 'continue'
 
       #
       # Push
@@ -178,10 +180,10 @@ jobs:
       #
 
       - name: 'Push'
-        if: steps.status.outputs.state == 'continue'
         run: |
           git push origin automated -f
         shell: bash
+        if: steps.status.outputs.state == 'continue'
 
       #
       # Merge
@@ -189,10 +191,8 @@ jobs:
       #
 
       - name: 'Merge'
-        if: steps.status.outputs.state == 'continue'
         run: |
           gh pr create --title "Automated State" --body "..." --base ${{ github.ref }} --head "automated"
           gh pr merge "automated" --squash --delete-branch
         shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: steps.status.outputs.state == 'continue'

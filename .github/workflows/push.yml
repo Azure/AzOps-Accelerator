@@ -18,6 +18,9 @@ on:
 
   pull_request:
 
+env:
+  strict_mode: false
+
 jobs:
 
   pre:
@@ -32,7 +35,14 @@ jobs:
     name: 'Pre'
     runs-on: ubuntu-20.04
     outputs:
-      diff: ${{ steps.diff.outputs.state }}
+      diff: ${{ steps.issue.outputs.state }}
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
 
@@ -66,6 +76,7 @@ jobs:
               Install-Module @module -Force -Verbose
           }
         shell: pwsh
+        if: env.strict_mode == true
 
       #
       # Connect
@@ -74,16 +85,10 @@ jobs:
 
       - name: 'Connect'
         run: |
-          $credential = New-Object System.Management.Automation.PSCredential `
-            -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
-          Connect-AzAccount `
-            -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
+          $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
+          Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
         shell: pwsh
-        env:
-          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+        if: env.strict_mode == true
 
       #
       # Initialize
@@ -96,25 +101,7 @@ jobs:
           Initialize-AzOpsRepository -Rebuild
           Get-Job | Remove-Job -Force
         shell: pwsh
-
-      #
-      # Diff
-      # List index changes
-      #
-
-      - name: 'Diff'
-        id: diff
-        run: |
-          DIFF=$(git diff --ignore-space-at-eol --name-status)
-          if [ -z "$DIFF" ]
-          then
-            echo $DIFF
-            echo "::set-output name=state::stop"
-          else
-            echo $DIFF
-            echo "::set-output name=state::continue"
-          fi
-        shell: bash
+        if: env.strict_mode == true
 
       #
       # Issue
@@ -122,12 +109,18 @@ jobs:
       #
 
       - name: 'Issue'
-        if: steps.diff.outputs.state == 'continue'
+        id: issue
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body "Job blocked...."
+          DIFF=$(git diff --ignore-space-at-eol --name-status)
+          echo $DIFF
+          if [ -n "$DIFF" ]
+          then
+            echo "::set-output name=state::stop"
+            gh pr comment ${{ github.event.pull_request.number }} --body "Job blocked...."
+          else
+            echo "::set-output name=state::continue"
+          fi
         shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   push:
 
@@ -141,7 +134,13 @@ jobs:
     name: 'Push'
     runs-on: ubuntu-20.04
     needs: pre
-    if: needs.pre.outputs.diff == 'stop'
+    if: needs.pre.outputs.diff == 'continue'
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
     steps:
 
@@ -182,16 +181,9 @@ jobs:
 
       - name: 'Connect'
         run: |
-          $credential = New-Object System.Management.Automation.PSCredential `
-            -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
-          Connect-AzAccount `
-            -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
+          $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
+          Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
         shell: pwsh
-        env:
-          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
       #
       # Diff
@@ -232,7 +224,13 @@ jobs:
     name: 'Post'
     runs-on: ubuntu-20.04
     needs: push
-    if: needs.pre.outputs.diff == 'stop'
+    if: needs.pre.outputs.diff == 'continue'
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
     steps:
 
@@ -265,6 +263,7 @@ jobs:
       - name: 'Switch'
         run: |
           git switch -c ${{ github.head_ref }}
+        shell: bash
 
       #
       # Dependencies
@@ -293,16 +292,9 @@ jobs:
 
       - name: 'Connect'
         run: |
-          $credential = New-Object System.Management.Automation.PSCredential `
-            -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
-          Connect-AzAccount `
-            -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
+          $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
+          Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
         shell: pwsh
-        env:
-          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
       #
       # Initialize
