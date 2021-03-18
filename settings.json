@@ -28,7 +28,7 @@
         "AzOps.Core.SkipRole": false,
         "AzOps.Core.State": ".",
         "AzOps.Core.SupportPartialMgDiscovery": false,
-        "AzOps.Core.TemplateParameterFileSuffix": ".parameters.json",
+        "AzOps.Core.TemplateParameterFileSuffix": ".json",
         "AzOps.Core.ThrottleLimit": 10
     }
 }
