@@ -5,7 +5,7 @@ on:
 
   #
   # Workflow Dispatch
-  # This is to invoke this action from portal
+  # This is to invoke the action from the GitHub UI
   #
 
   workflow_dispatch:

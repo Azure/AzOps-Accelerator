@@ -4,20 +4,8 @@ name: 'AzOps - Pull'
 on:
 
   #
-  # Schedule
-  # This is an [optional] event to get latest Azure
-  # hierarchy of Management Group and Subscription in
-  # your Git in recurring manner. Default is every 6 hours
-  #
-  # Adjust frequency based on your organization need
-  #
-
-  schedule:
-    - cron: "0 */6 * * *"
-
-  #
   # Workflow Dispatch
-  # This is to invoke this action from the GitHub UI
+  # This is to invoke the action from the GitHub UI
   #
 
   workflow_dispatch:
@@ -33,10 +21,21 @@ on:
 
   repository_dispatch:
     types:
-
       - "Azure Activity Logs"
       - "Enterprise-Scale Deployment"
       - "Enterprise-Scale Event"
+
+  #
+  # Schedule
+  # This is an [optional] event to get latest Azure
+  # hierarchy of Management Group and Subscription in
+  # your Git in recurring manner. Default is every 6 hours
+  #
+  # Adjust frequency based on your organization need
+  #
+
+  schedule:
+    - cron: "0 */6 * * *"
 
 jobs:
 
