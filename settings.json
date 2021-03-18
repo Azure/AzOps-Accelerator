@@ -26,7 +26,7 @@
         "AzOps.Core.SkipResourceGroup": false,
         "AzOps.Core.SubscriptionsToIncludeResourceGroups": "*",
         "AzOps.Core.SkipRole": false,
-        "AzOps.Core.State": ".",
+        "AzOps.Core.State": "",
         "AzOps.Core.SupportPartialMgDiscovery": false,
         "AzOps.Core.TemplateParameterFileSuffix": ".parameters.json",
         "AzOps.Core.ThrottleLimit": 10
