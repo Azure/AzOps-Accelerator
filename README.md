@@ -1,6 +1,6 @@
 # AzOps Accelerator
 
-This template repository is for deploying a new AzOps environment.
+This template repository is for getting started with the AzOps integrated CI/CD solution.
 
 ## Guides
 
