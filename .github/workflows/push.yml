@@ -19,7 +19,24 @@ on:
   pull_request:
 
 env:
+
+  #
+  # Strict Mode
+  # Enable strict mode when pre consistency checking
+  # is required on the repository. When disabled the
+  # pre steps will be skipped.
+  #
+
   strict_mode: false
+
+  #
+  # Auto Merge
+  # When auto merge is enabled, after the deployment
+  # is completed, the new state will be pushed to the
+  # head branch and the proposed pull request will be
+  # merged directly into the base branch.
+  #
+
   auto_merge: true
 
 jobs:
