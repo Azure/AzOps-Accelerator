@@ -83,8 +83,17 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        Install-Module -Name "AzOps" -AllowPrerelease -Force
-        Install-Module -Name @("Az.Accounts", "Az.Billing", "Az.Resources", "PSFramework") -Force
+        $modules = @(
+            @{ Name = "Az.Accounts"; Repository = "PSGallery"; RequiredVersion = "2.2.5" },
+            @{ Name = "Az.Billing"; Repository = "PSGallery"; RequiredVersion = "2.0.0" },
+            @{ Name = "Az.Resources"; Repository = "PSGallery"; RequiredVersion = "3.2.1" },
+            @{ Name = "PSFramework"; Repository = "PSGallery"; RequiredVersion = "1.6.181" },
+            @{ Name = "AzOps"; Repository = "PSGallery"; AllowPrerelease = $true }
+        )
+        $modules | ForEach-Object {
+            $module = $_
+            Install-Module @module -Force -Verbose
+        }
 
   #
   # Connect
