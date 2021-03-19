@@ -37,7 +37,7 @@ env:
   # merged directly into the base branch.
   #
 
-  auto_merge: true
+  auto_merge: false
 
 jobs:
 
