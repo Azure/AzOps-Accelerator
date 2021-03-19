@@ -77,7 +77,7 @@ jobs:
         )
         $modules | ForEach-Object {
             $module = $_
-            Install-Module @module -Force -Verbose
+            Install-Module @module -Force
         }
     condition: contains(variables['strict_mode'], 'true')
 
@@ -179,7 +179,7 @@ jobs:
         )
         $modules | ForEach-Object {
             $module = $_
-            Install-Module @module -Force -Verbose
+            Install-Module @module -Force
         }
 
   #
@@ -293,7 +293,7 @@ jobs:
         )
         $modules | ForEach-Object {
             $module = $_
-            Install-Module @module -Force -Verbose
+            Install-Module @module -Force
         }
 
   #
