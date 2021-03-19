@@ -45,9 +45,9 @@ jobs:
 
     #
     # Pre
-    # - Before running the resource deployment,
-    # - we need to validate the repository state
-    # - is up to date and we won't encounter conflicts.
+    # Before running the resource deployment,
+    # we need to validate the repository state
+    # is up to date and we won't encounter conflicts.
     #
 
     name: 'Pre'
@@ -144,9 +144,9 @@ jobs:
 
     #
     # Push
-    # - Before running the resource deployment,
-    # - we need to validate the repository state
-    # - is up to date and we won't encounter conflicts.
+    # Before running the resource deployment,
+    # we need to validate the repository state
+    # is up to date and we won't encounter conflicts.
     #
 
     name: 'Push'
@@ -234,9 +234,9 @@ jobs:
 
     #
     # Post
-    # - Before running the resource deployment,
-    # - we need to validate the repository state
-    # - is up to date and we won't encounter conflicts.
+    # Before running the resource deployment,
+    # we need to validate the repository state
+    # is up to date and we won't encounter conflicts.
     #
 
     name: 'Post'
