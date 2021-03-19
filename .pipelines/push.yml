@@ -9,6 +9,27 @@ name: 'AzOps - Push'
 
 trigger: none
 
+variables:
+
+  #
+  # Strict Mode
+  # Enable strict mode when pre consistency checking
+  # is required on the repository. When disabled the
+  # pre steps will be skipped.
+  #
+
+  strict_mode: false
+
+  #
+  # Auto Merge
+  # When auto merge is enabled, after the deployment
+  # is completed, the new state will be pushed to the
+  # head branch and the proposed pull request will be
+  # merged directly into the base branch.
+  #
+
+  auto_merge: false
+
 pool:
   vmImage: 'ubuntu-20.04'
 
@@ -18,13 +39,14 @@ jobs:
 
   #
   # Pre
-  # - Before running the resource deployment,
-  # - we need to validate the repository state
-  # - is up to date and we won't encounter conflicts.
+  # Before running the resource deployment,
+  # we need to validate the repository state
+  # is up to date and we won't encounter conflicts.
   #
 
   displayName: 'Pre'
   condition: and(eq(variables['Build.Reason'], 'PullRequest'), ne(variables['System.PullRequest.SourceBranch'], 'refs/heads/automated'))
+
   steps:
 
   #
@@ -57,6 +79,7 @@ jobs:
             $module = $_
             Install-Module @module -Force -Verbose
         }
+    condition: contains(variables['strict_mode'], 'true')
 
   #
   # Connect
@@ -68,10 +91,9 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-          $credential = New-Object System.Management.Automation.PSCredential `
-            -ArgumentList $(ARM_CLIENT_ID), (ConvertTo-SecureString -String $(ARM_CLIENT_SECRET) -AsPlainText -Force)
-          Connect-AzAccount `
-            -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
+          $credential = New-Object PSCredential -ArgumentList $(ARM_CLIENT_ID), (ConvertTo-SecureString -String $(ARM_CLIENT_SECRET) -AsPlainText -Force)
+          Connect-AzAccount -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
+    condition: contains(variables['strict_mode'], 'true')
 
   #
   # Initialize
@@ -86,27 +108,7 @@ jobs:
           Import-PSFConfig -Path settings.json -Schema MetaJson
           Initialize-AzOpsRepository -Rebuild
           Get-Job | Remove-Job -Force
-
-  #
-  # Diff
-  # List index changes
-  #
-
-  - task: Bash@3
-    displayName: 'Diff'
-    name: diff
-    inputs:
-      targetType: 'inline'
-      script: |
-        DIFF=$(git diff --ignore-space-at-eol --name-status)
-        if [ -z "$DIFF" ]
-        then
-          echo $DIFF
-          echo "##vso[task.setvariable variable=state;isOutput=true]continue"
-        else
-          echo $DIFF
-          echo "##vso[task.setvariable variable=state;isOutput=true]stop"
-        fi
+    condition: contains(variables['strict_mode'], 'true')
 
   #
   # Issue
@@ -115,29 +117,38 @@ jobs:
 
   - task: Bash@3
     displayName: 'Issue'
-    condition: contains(variables['diff.state'], 'stop')
+    name: issue
     inputs:
       targetType: 'inline'
       script: |
-        URL="$(System.CollectionUri)/$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.Name)/pullRequests/$(System.PullRequest.PullRequestId)/threads?api-version=6.0"
-        curl --request POST \
-        --header "Authorization: Bearer $(System.AccessToken)" \
-        --header "Content-Type: application/json" \
-        --data '{ "comments": [ { "parentCommentId": 0, "content": "Hello!", "commentType": 1 } ], "status": 1 }' \
-        --url "$( echo "$URL" | sed 's/ /%20/g' )"
+        DIFF=$(git diff --ignore-space-at-eol --name-status)
+        echo $DIFF
+        if [ -n "$DIFF" ]
+        then
+          echo "##vso[task.setvariable variable=state;isOutput=true]stop"
+          URL="$(System.CollectionUri)/$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.Name)/pullRequests/$(System.PullRequest.PullRequestId)/threads?api-version=6.0"
+          curl --request POST \
+          --header "Authorization: Bearer $(System.AccessToken)" \
+          --header "Content-Type: application/json" \
+          --data '{ "comments": [ { "parentCommentId": 0, "content": "Hello!", "commentType": 1 } ], "status": 1 }' \
+          --url "$( echo "$URL" | sed 's/ /%20/g' )"
+        else
+          echo "##vso[task.setvariable variable=state;isOutput=true]continue"
+        fi
 
 - job: push
 
   #
   # Push
-  # -
-  # -
-  # -
+  # Before running the resource deployment,
+  # we need to validate the repository state
+  # is up to date and we won't encounter conflicts.
   #
 
   displayName: 'Push'
-  condition: contains(dependencies.pre.outputs['diff.state'], 'continue')
   dependsOn: pre
+  condition: contains(dependencies.pre.outputs['issue.state'], 'continue')
+
   steps:
 
   #
@@ -181,10 +192,8 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-          $credential = New-Object System.Management.Automation.PSCredential `
-            -ArgumentList $(ARM_CLIENT_ID), (ConvertTo-SecureString -String $(ARM_CLIENT_SECRET) -AsPlainText -Force)
-          Connect-AzAccount `
-            -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
+          $credential = New-Object PSCredential -ArgumentList $(ARM_CLIENT_ID), (ConvertTo-SecureString -String $(ARM_CLIENT_SECRET) -AsPlainText -Force)
+          Connect-AzAccount -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
 
   #
   # Diff
@@ -219,14 +228,15 @@ jobs:
 
   #
   # Post
-  # -
-  # -
-  # -
+  # Before running the resource deployment,
+  # we need to validate the repository state
+  # is up to date and we won't encounter conflicts.
   #
 
   displayName: 'Post'
-  condition: contains(dependencies.pre.outputs['diff.state'], 'continue')
   dependsOn: push
+  condition: contains(dependencies.pre.outputs['issue.state'], 'continue')
+
   steps:
 
   #
@@ -296,10 +306,8 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-          $credential = New-Object System.Management.Automation.PSCredential `
-            -ArgumentList $(ARM_CLIENT_ID), (ConvertTo-SecureString -String $(ARM_CLIENT_SECRET) -AsPlainText -Force)
-          Connect-AzAccount `
-            -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
+          $credential = New-Object PSCredential -ArgumentList $(ARM_CLIENT_ID), (ConvertTo-SecureString -String $(ARM_CLIENT_SECRET) -AsPlainText -Force)
+          Connect-AzAccount -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
 
   #
   # Initialize
@@ -326,6 +334,7 @@ jobs:
       targetType: 'inline'
       script: |
         git add ./azops
+        git status --short
 
   #
   # Commit
@@ -351,3 +360,22 @@ jobs:
       script: |
         sourceBranchName=$(echo $(System.PullRequest.SourceBranch) | sed 's:refs/heads/::')
         git push origin $sourceBranchName  -f
+
+  #
+  # Merge
+  # Automatically merge the Pull Request into base
+  #
+
+  - task: Bash@3
+    displayName: 'Merge'
+    inputs:
+      targetType: 'inline'
+      script: |
+        az repos pr update \
+          --id $(System.PullRequest.PullRequestId) \
+          --auto-complete true \
+          --squash true \
+          --delete-source-branch true
+    env:
+      AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+    condition: contains(variables['auto_merge'], 'true')
