@@ -104,7 +104,7 @@ jobs:
           )
           $modules | ForEach-Object {
               $module = $_
-              Install-Module @module -Force -Verbose
+              Install-Module @module -Force
           }
         shell: pwsh
 

@@ -91,7 +91,7 @@ jobs:
           )
           $modules | ForEach-Object {
               $module = $_
-              Install-Module @module -Force -Verbose
+              Install-Module @module -Force
           }
         shell: pwsh
         if: env.strict_mode == 'true'
@@ -188,7 +188,7 @@ jobs:
           )
           $modules | ForEach-Object {
               $module = $_
-              Install-Module @module -Force -Verbose
+              Install-Module @module -Force
           }
         shell: pwsh
 
@@ -300,7 +300,7 @@ jobs:
           )
           $modules | ForEach-Object {
               $module = $_
-              Install-Module @module -Force -Verbose
+              Install-Module @module -Force
           }
         shell: pwsh
 
