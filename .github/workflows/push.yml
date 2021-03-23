@@ -4,13 +4,6 @@ name: 'AzOps - Push'
 on:
 
   #
-  # Workflow Dispatch
-  # This is to invoke the action from the GitHub UI
-  #
-
-  workflow_dispatch:
-
-  #
   # Pull Request
   # Automated workflow trigger when a pull request
   # is created within the repository.
