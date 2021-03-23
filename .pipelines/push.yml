@@ -401,4 +401,4 @@ jobs:
           --delete-source-branch true
     env:
       AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-    condition: and(contains(variables['state'], 'continue'), contains(variables['auto_merge'], 'true'))
+    condition: contains(variables['auto_merge'], 'true')
