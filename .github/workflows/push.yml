@@ -390,4 +390,4 @@ jobs:
         run: |
           gh pr merge ${{ github.event.pull_request.head.ref }} --squash --delete-branch
         shell: bash
-        if: and(steps.status.outputs.state == 'continue', env.auto_merge == 'true')
+        if: env.auto_merge == 'true'
