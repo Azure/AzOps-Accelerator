@@ -4,13 +4,6 @@ name: 'AzOps - Push'
 on:
 
   #
-  # Workflow Dispatch
-  # This is to invoke the action from the GitHub UI
-  #
-
-  workflow_dispatch:
-
-  #
   # Pull Request
   # Automated workflow trigger when a pull request
   # is created within the repository.
@@ -37,7 +30,7 @@ env:
   # merged directly into the base branch.
   #
 
-  auto_merge: false
+  auto_merge: true
 
 jobs:
 
@@ -328,6 +321,26 @@ jobs:
         shell: pwsh
 
       #
+      # Status
+      # Check for data changes
+      #
+
+      - name: 'Status'
+        id: status
+        run: |
+          STATUS=$(git status --short)
+          echo $STATUS
+          if [ -z "$STATUS" ]
+          then
+            echo $STATUS
+            echo "::set-output name=state::stop"
+          else
+            echo $STATUS
+            echo "::set-output name=state::continue"
+          fi
+        shell: bash
+
+      #
       # Add
       # Add file content to index
       #
@@ -337,6 +350,7 @@ jobs:
           git add ./azops
           git status --short
         shell: bash
+        if: steps.status.outputs.state == 'continue'
 
       #
       # Commit
@@ -347,6 +361,7 @@ jobs:
         run: |
           git commit -m "Automated commit"
         shell: bash
+        if: steps.status.outputs.state == 'continue'
 
       #
       # Push
@@ -357,6 +372,7 @@ jobs:
         run: |
           git push origin ${{ github.head_ref }}
         shell: bash
+        if: steps.status.outputs.state == 'continue'
 
       #
       # Merge
