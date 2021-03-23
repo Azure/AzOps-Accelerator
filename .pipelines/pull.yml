@@ -137,10 +137,10 @@ jobs:
         if [ -z "$STATUS" ]
         then
           echo $STATUS
-          echo "##vso[task.setvariable variable=state]continue"
+          echo "##vso[task.setvariable variable=state]stop"
         else
           echo $STATUS
-          echo "##vso[task.setvariable variable=state]stop"
+          echo "##vso[task.setvariable variable=state]continue"
         fi
 
   #
@@ -154,7 +154,7 @@ jobs:
       targetType: 'inline'
       script: |
         git add ./azops
-    condition: contains(variables['state'], 'stop')
+    condition: contains(variables['state'], 'continue')
 
   #
   # Commit
@@ -167,7 +167,7 @@ jobs:
       targetType: 'inline'
       script: |
         git commit -m "Automated commit"
-    condition: contains(variables['state'], 'stop')
+    condition: contains(variables['state'], 'continue')
 
   #
   # Push
@@ -180,7 +180,7 @@ jobs:
       targetType: 'inline'
       script: |
         git push origin automated -f
-    condition: contains(variables['state'], 'stop')
+    condition: contains(variables['state'], 'continue')
 
   #
   # Merge
@@ -199,6 +199,6 @@ jobs:
           --squash true \
           --delete-source-branch true \
           --auto-complete true
-    condition: contains(variables['state'], 'stop')
+    condition: contains(variables['state'], 'continue')
     env:
       AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
