@@ -328,6 +328,26 @@ jobs:
         shell: pwsh
 
       #
+      # Status
+      # Check for data changes
+      #
+
+      - name: 'Status'
+        id: status
+        run: |
+          STATUS=$(git status --short)
+          echo $STATUS
+          if [ -z "$STATUS" ]
+          then
+            echo $STATUS
+            echo "::set-output name=state::stop"
+          else
+            echo $STATUS
+            echo "::set-output name=state::continue"
+          fi
+        shell: bash
+
+      #
       # Add
       # Add file content to index
       #
@@ -337,6 +357,7 @@ jobs:
           git add ./azops
           git status --short
         shell: bash
+        if: steps.status.outputs.state == 'continue'
 
       #
       # Commit
@@ -347,6 +368,7 @@ jobs:
         run: |
           git commit -m "Automated commit"
         shell: bash
+        if: steps.status.outputs.state == 'continue'
 
       #
       # Push
@@ -357,6 +379,7 @@ jobs:
         run: |
           git push origin ${{ github.head_ref }}
         shell: bash
+        if: steps.status.outputs.state == 'continue'
 
       #
       # Merge
@@ -367,4 +390,4 @@ jobs:
         run: |
           gh pr merge ${{ github.event.pull_request.head.ref }} --squash --delete-branch
         shell: bash
-        if: env.auto_merge == 'true'
+        if: and(steps.status.outputs.state == 'continue', env.auto_merge == 'true')
