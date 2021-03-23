@@ -338,10 +338,10 @@ jobs:
         if [ -z "$STATUS" ]
         then
           echo $STATUS
-          echo "##vso[task.setvariable variable=state]continue"
+          echo "##vso[task.setvariable variable=state]stop"
         else
           echo $STATUS
-          echo "##vso[task.setvariable variable=state]stop"
+          echo "##vso[task.setvariable variable=state]continue"
         fi
 
   #
