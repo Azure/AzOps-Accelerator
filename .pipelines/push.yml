@@ -324,6 +324,27 @@ jobs:
           Get-Job | Remove-Job -Force
 
   #
+  # Status
+  # Check for data changes
+  #
+
+  - task: Bash@3
+    displayName: 'Status'
+    inputs:
+      targetType: 'inline'
+      script: |
+        STATUS=$(git status --short)
+        echo $STATUS
+        if [ -z "$STATUS" ]
+        then
+          echo $STATUS
+          echo "##vso[task.setvariable variable=state]continue"
+        else
+          echo $STATUS
+          echo "##vso[task.setvariable variable=state]stop"
+        fi
+
+  #
   # Add
   # Add file content to index
   #
@@ -335,6 +356,7 @@ jobs:
       script: |
         git add ./azops
         git status --short
+    condition: contains(variables['state'], 'continue')
 
   #
   # Commit
@@ -360,6 +382,7 @@ jobs:
       script: |
         sourceBranchName=$(echo $(System.PullRequest.SourceBranch) | sed 's:refs/heads/::')
         git push origin $sourceBranchName  -f
+    condition: contains(variables['state'], 'continue')
 
   #
   # Merge
@@ -378,4 +401,4 @@ jobs:
           --delete-source-branch true
     env:
       AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-    condition: contains(variables['auto_merge'], 'true')
+    condition: and(contains(variables['state'], 'continue'), contains(variables['auto_merge'], 'true'))
