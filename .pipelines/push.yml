@@ -369,6 +369,7 @@ jobs:
       targetType: 'inline'
       script: |
         git commit -m "Automated commit" -m "[skip ci]"
+    condition: contains(variables['state'], 'continue')
 
   #
   # Push
