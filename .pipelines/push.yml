@@ -28,7 +28,7 @@ variables:
   # merged directly into the base branch.
   #
 
-  auto_merge: false
+  auto_merge: true
 
 pool:
   vmImage: 'ubuntu-20.04'
