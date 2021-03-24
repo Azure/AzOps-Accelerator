@@ -1,35 +1,39 @@
 {
     "Version": 1,
-    "Static": {
-        "AzOps.Core.AutoInitialize": true,
-        "AzOps.Core.DefaultDeploymentRegion": "northeurope",
-        "AzOps.Core.EnrollmentAccountPrincipalName": "",
-        "AzOps.Core.ExcludedSubOffer": [
-            "AzurePass_2014-09-01",
-            "FreeTrial_2014-09-01",
-            "AAD_2015-09-01"
-        ],
-        "AzOps.Core.ExcludedSubState": [
-            "Disabled",
-            "Deleted",
-            "Warned",
-            "Expired"
-        ],
-        "AzOps.Core.ExportRawTemplate": false,
-        "AzOps.Core.GeneralizeTemplates": false,
-        "AzOps.Core.IgnoreContextCheck": false,
-        "AzOps.Core.InvalidateCache": true,
-        "AzOps.Core.MainTemplate": "",
-        "AzOps.Core.OfferType": "MS-AZR-0017P",
-        "AzOps.Core.PartialMgDiscoveryRoot": [],
-        "AzOps.Core.SkipPolicy": false,
-        "AzOps.Core.SkipResourceGroup": false,
-        "AzOps.Core.SubscriptionsToIncludeResourceGroups": "*",
-        "AzOps.Core.SkipRole": false,
-        "AzOps.Core.State": "",
-        "AzOps.Core.SupportPartialMgDiscovery": false,
-        "AzOps.Core.TemplateParameterFileSuffix": ".json",
-        "AzOps.Core.ThrottleLimit": 10,
-        "PSFramework.Message.Info.Maximum": 9
+    "Tree": {
+        "AzOps": {
+            "Core.AutoInitialize": true,
+            "Core.DefaultDeploymentRegion": "northeurope",
+            "Core.EnrollmentAccountPrincipalName": "",
+            "Core.ExcludedSubOffer": [
+                "AzurePass_2014-09-01",
+                "FreeTrial_2014-09-01",
+                "AAD_2015-09-01"
+            ],
+            "Core.ExcludedSubState": [
+                "Disabled",
+                "Deleted",
+                "Warned",
+                "Expired"
+            ],
+            "Core.ExportRawTemplate": false,
+            "Core.GeneralizeTemplates": false,
+            "Core.IgnoreContextCheck": false,
+            "Core.InvalidateCache": true,
+            "Core.MainTemplate": "",
+            "Core.OfferType": "MS-AZR-0017P",
+            "Core.PartialMgDiscoveryRoot": [],
+            "Core.SkipPolicy": false,
+            "Core.SkipResourceGroup": false,
+            "Core.SubscriptionsToIncludeResourceGroups": "*",
+            "Core.SkipRole": false,
+            "Core.State": "",
+            "Core.SupportPartialMgDiscovery": false,
+            "Core.TemplateParameterFileSuffix": ".json",
+            "Core.ThrottleLimit": 10
+        },
+        "PSFramework": {
+            "Message.Info.Maximum": 9
+        }
     }
 }
