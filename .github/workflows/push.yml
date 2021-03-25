@@ -2,6 +2,7 @@
 name: "AzOps - Push"
 
 on:
+
   #
   # Pull Request
   # Automated workflow trigger when a pull request
@@ -11,11 +12,14 @@ on:
   pull_request:
 
 env:
+
   #
   # Strict Mode
   # Enable strict mode when pre consistency checking
   # is required on the repository. When disabled the
   # pre steps will be skipped.
+  #
+  # Default: false
   #
 
   strict_mode: false
@@ -24,14 +28,42 @@ env:
   # Auto Merge
   # When auto merge is enabled, after the deployment
   # is completed, the new state will be pushed to the
-  # head branch and the proposed pull request will be
+  # head branch and the trigger pull request will be
   # merged directly into the base branch.
+  #
+  # Default: true
   #
 
   auto_merge: true
 
+  #
+  # Folder Name
+  # By default we generate the hierachy within the
+  # 'azops' folder within the root of the repository.
+  # If this property is modified, the config value within
+  # the settings.json file - Core.State will also need
+  # to be changed.
+  #
+  # Default: azops
+  #
+
+  folder: "azops"
+
+  #
+  # Commit Message
+  # During the Pull workflow, the changes are commited to the
+  # temporary branch, the message which is applied within the
+  # Git history can be changed as needed.
+  #
+  # Default: Automated commit
+  #
+
+  commit_message: "Automated commit"
+
 jobs:
+
   pre:
+
     #
     # Pre
     # Before running the resource deployment,
@@ -42,7 +74,8 @@ jobs:
     name: "Pre"
     runs-on: ubuntu-20.04
     outputs:
-      diff: ${{ steps.issue.outputs.state }}
+      issue: ${{ steps.issue.outputs.state }}
+      skip: ${{ steps.skip.outputs.state }}
 
     env:
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
@@ -52,6 +85,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
+
       #
       # Checkout
       # Checks-out the repository
@@ -61,7 +95,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          ref: main
+          ref: ${{ github.event.pull_request.base.ref }}
 
       #
       # Dependencies
@@ -114,13 +148,26 @@ jobs:
           if [ -n "$DIFF" ]
           then
             echo "::set-output name=state::stop"
-            gh pr comment ${{ github.event.pull_request.number }} --body "Job blocked...."
+            gh pr comment ${{ github.event.pull_request.number }} --body "Unable to proceed the branch is out of sync with Azure."
           else
             echo "::set-output name=state::continue"
           fi
         shell: bash
+        if: env.strict_mode == 'true'
+
+      #
+      # Skip
+      #
+
+      - name: "Skip"
+        id: skip
+        run: |
+          echo "::set-output name=state::continue"
+        shell: bash
+        if: env.strict_mode == 'false'
 
   push:
+
     #
     # Push
     # Before running the resource deployment,
@@ -131,7 +178,7 @@ jobs:
     name: "Push"
     runs-on: ubuntu-20.04
     needs: pre
-    if: needs.pre.outputs.diff == 'continue'
+    if: needs.pre.outputs.issue == 'continue' || needs.pre.outputs.skip == 'continue'
 
     env:
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
@@ -140,6 +187,7 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
     steps:
+
       #
       # Checkout
       # Checks-out the repository
@@ -181,8 +229,8 @@ jobs:
       - name: "Diff"
         id: diff
         run: |
-          echo $(git diff origin/main --name-status)
-          git diff origin/main --name-status > /tmp/diff.txt
+          echo $(git diff origin/${{ github.event.pull_request.base.ref }} --name-status)
+          git diff origin/${{ github.event.pull_request.base.ref }} --name-status > /tmp/diff.txt
         shell: bash
 
       #
@@ -201,6 +249,7 @@ jobs:
         shell: pwsh
 
   post:
+
     #
     # Post
     # Before running the resource deployment,
@@ -211,7 +260,7 @@ jobs:
     name: "Post"
     runs-on: ubuntu-20.04
     needs: push
-    if: needs.pre.outputs.diff == 'continue'
+    if: needs.pre.outputs.diff == 'continue' || needs.pre.outputs.skip == 'continue'
 
     env:
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
@@ -221,6 +270,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
+
       #
       # Checkout
       # Checks-out the repository
@@ -299,10 +349,8 @@ jobs:
           echo $STATUS
           if [ -z "$STATUS" ]
           then
-            echo $STATUS
             echo "::set-output name=state::stop"
           else
-            echo $STATUS
             echo "::set-output name=state::continue"
           fi
         shell: bash
@@ -314,7 +362,7 @@ jobs:
 
       - name: "Add"
         run: |
-          git add ./azops
+          git add ./${{ env.folder }}
           git status --short
         shell: bash
         if: steps.status.outputs.state == 'continue'
@@ -326,7 +374,7 @@ jobs:
 
       - name: "Commit"
         run: |
-          git commit -m "Automated commit"
+          git commit -m "${{ env.commit_message }}"
         shell: bash
         if: steps.status.outputs.state == 'continue'
 
