@@ -1,5 +1,5 @@
 ---
-name: 'AzOps - Pull'
+name: "AzOps - Pull"
 
 #
 # Triggers
@@ -29,176 +29,166 @@ pool:
   vmImage: "ubuntu-20.04"
 
 jobs:
+  - job: pull
 
-- job: pull
+    #
+    # Pull
+    #
 
-  #
-  # Pull
-  #
+    displayName: "Pull"
+    steps:
+      #
+      # Checkout
+      # Checks-out the repository
+      #
 
-  displayName: 'Pull'
-  steps:
+      - checkout: self
+        fetchDepth: 0
+        persistCredentials: true
 
-  #
-  # Checkout
-  # Checks-out the repository
-  #
+      #
+      # Configure
+      # Set global options
+      #
 
-  - checkout: self
-    fetchDepth: 0
-    persistCredentials: true
+      - task: Bash@3
+        displayName: "Configure"
+        inputs:
+          targetType: "inline"
+          script: |
+            git config user.name "Azure DevOps"
+            git config user.email "azuredevops@microsoft.com"
 
-  #
-  # Configure
-  # Set global options
-  #
+      #
+      # Checkout
+      # Switch branches
+      #
 
-  - task: Bash@3
-    displayName: 'Configure'
-    inputs:
-      targetType: 'inline'
-      script: |
-          git config user.name "Azure DevOps"
-          git config user.email "azuredevops@microsoft.com"
+      - task: Bash@3
+        displayName: "Checkout"
+        inputs:
+          targetType: "inline"
+          script: |
+            git checkout -b automated
 
-  #
-  # Checkout
-  # Switch branches
-  #
+      #
+      # Dependencies
+      # Install required runtime modules
+      #
 
-  - task: Bash@3
-    displayName: 'Checkout'
-    inputs:
-      targetType: 'inline'
-      script: |
-        git checkout -b automated
+      - task: PowerShell@2
+        displayName: "Dependencies"
+        inputs:
+          targetType: "inline"
+          script: |
+            $module = Find-Module -Name AzOps -AllowPrerelease
+            $module.Dependencies | ForEach-Object { Install-Module -Name $_.Name -RequiredVersion $_.MinimumVersion -Force }
+            Install-Module -Name AzOps -AllowPrerelease -Force
 
-  #
-  # Dependencies
-  # Install required runtime modules
-  #
+      #
+      # Connect
+      # Authenticate Azure context
+      #
 
-  - task: PowerShell@2
-    displayName: 'Dependencies'
-    inputs:
-      targetType: 'inline'
-      script: |
-        $modules = @(
-            @{ Name = "Az.Accounts"; Repository = "PSGallery"; RequiredVersion = "2.2.5" },
-            @{ Name = "Az.Billing"; Repository = "PSGallery"; RequiredVersion = "2.0.0" },
-            @{ Name = "Az.Resources"; Repository = "PSGallery"; RequiredVersion = "3.2.1" },
-            @{ Name = "PSFramework"; Repository = "PSGallery"; RequiredVersion = "1.6.181" },
-            @{ Name = "AzOps"; Repository = "PSGallery"; AllowPrerelease = $true }
-        )
-        $modules | ForEach-Object {
-            $module = $_
-            Install-Module @module -Force
-        }
+      - task: PowerShell@2
+        displayName: "Connect"
+        inputs:
+          targetType: "inline"
+          script: |
+            $credential = New-Object PSCredential -ArgumentList $(ARM_CLIENT_ID), (ConvertTo-SecureString -String $(ARM_CLIENT_SECRET) -AsPlainText -Force)
+            Connect-AzAccount -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
 
-  #
-  # Connect
-  # Authenticate Azure context
-  #
+      #
+      # Initialize
+      # Generate new state data
+      #
 
-  - task: PowerShell@2
-    displayName: 'Connect'
-    inputs:
-      targetType: 'inline'
-      script: |
-          $credential = New-Object PSCredential -ArgumentList $(ARM_CLIENT_ID), (ConvertTo-SecureString -String $(ARM_CLIENT_SECRET) -AsPlainText -Force)
-          Connect-AzAccount -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
+      - task: PowerShell@2
+        displayName: "Initialize"
+        inputs:
+          targetType: "inline"
+          script: |
+            Import-PSFConfig -Path settings.json -Schema MetaJson
+            Initialize-AzOpsRepository -Rebuild
+            Get-Job | Remove-Job -Force
 
-  #
-  # Initialize
-  # Generate new state data
-  #
+      #
+      # Status
+      # Check for data changes
+      #
 
-  - task: PowerShell@2
-    displayName: 'Initialize'
-    inputs:
-      targetType: 'inline'
-      script: |
-          Import-PSFConfig -Path settings.json -Schema MetaJson
-          Initialize-AzOpsRepository -Rebuild
-          Get-Job | Remove-Job -Force
+      - task: Bash@3
+        displayName: "Status"
+        inputs:
+          targetType: "inline"
+          script: |
+            STATUS=$(git status --short)
+            echo $STATUS
+            if [ -z "$STATUS" ]
+            then
+              echo $STATUS
+              echo "##vso[task.setvariable variable=state]stop"
+            else
+              echo $STATUS
+              echo "##vso[task.setvariable variable=state]continue"
+            fi
 
-  #
-  # Status
-  # Check for data changes
-  #
+      #
+      # Add
+      # Add file content to index
+      #
 
-  - task: Bash@3
-    displayName: 'Status'
-    inputs:
-      targetType: 'inline'
-      script: |
-        STATUS=$(git status --short)
-        echo $STATUS
-        if [ -z "$STATUS" ]
-        then
-          echo $STATUS
-          echo "##vso[task.setvariable variable=state]stop"
-        else
-          echo $STATUS
-          echo "##vso[task.setvariable variable=state]continue"
-        fi
+      - task: Bash@3
+        displayName: "Add"
+        inputs:
+          targetType: "inline"
+          script: |
+            git add ./azops
+        condition: contains(variables['state'], 'continue')
 
-  #
-  # Add
-  # Add file content to index
-  #
+      #
+      # Commit
+      # Record changes to the repository
+      #
 
-  - task: Bash@3
-    displayName: 'Add'
-    inputs:
-      targetType: 'inline'
-      script: |
-        git add ./azops
-    condition: contains(variables['state'], 'continue')
+      - task: Bash@3
+        displayName: "Commit"
+        inputs:
+          targetType: "inline"
+          script: |
+            git commit -m "Automated commit"
+        condition: contains(variables['state'], 'continue')
 
-  #
-  # Commit
-  # Record changes to the repository
-  #
+      #
+      # Push
+      # Update remote refs along with associated objects
+      #
 
-  - task: Bash@3
-    displayName: 'Commit'
-    inputs:
-      targetType: 'inline'
-      script: |
-        git commit -m "Automated commit"
-    condition: contains(variables['state'], 'continue')
+      - task: Bash@3
+        displayName: "Push"
+        inputs:
+          targetType: "inline"
+          script: |
+            git push origin automated -f
+        condition: contains(variables['state'], 'continue')
 
-  #
-  # Push
-  # Update remote refs along with associated objects
-  #
+      #
+      # Merge
+      # Update remote refs along with associated objects
+      #
 
-  - task: Bash@3
-    displayName: 'Push'
-    inputs:
-      targetType: 'inline'
-      script: |
-        git push origin automated -f
-    condition: contains(variables['state'], 'continue')
-
-  #
-  # Merge
-  # Update remote refs along with associated objects
-  #
-
-  - task: Bash@3
-    displayName: 'Merge'
-    inputs:
-      targetType: 'inline'
-      script: |
-        az repos pr create \
-          --title "Automated State" \
-          --source-branch "automated" \
-          --target-branch "main" \
-          --squash true \
-          --delete-source-branch true \
-          --auto-complete true
-    condition: contains(variables['state'], 'continue')
-    env:
-      AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+      - task: Bash@3
+        displayName: "Merge"
+        inputs:
+          targetType: "inline"
+          script: |
+            az repos pr create \
+              --title "Automated State" \
+              --source-branch "automated" \
+              --target-branch "main" \
+              --squash true \
+              --delete-source-branch true \
+              --auto-complete true
+        condition: contains(variables['state'], 'continue')
+        env:
+          AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
