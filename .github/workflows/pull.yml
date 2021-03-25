@@ -2,6 +2,7 @@
 name: "AzOps - Pull"
 
 on:
+
   #
   # Workflow Dispatch
   # This is to invoke the action from the GitHub UI
@@ -15,29 +16,77 @@ on:
   # could be from an activity logs when a specific condition
   # is met and triggered
   #
-  # TODO: PR (22) Remove dispatch type (activity-logs)
-  #
 
   repository_dispatch:
     types:
-      - "Azure Activity Logs"
       - "Enterprise-Scale Deployment"
       - "Enterprise-Scale Event"
 
   #
   # Schedule
-  # This is an [optional] event to get latest Azure
-  # hierarchy of Management Group and Subscription in
-  # your Git in recurring manner. Default is every 6 hours
+  # This is an optional trigger to pull the latest Azure
+  # hierarchy into the Git repository in a recurring
+  # manner.
   #
-  # Adjust frequency based on your organization need
+  # Default: Every 6 hours
   #
 
   schedule:
     - cron: "0 */6 * * *"
 
+env:
+
+  #
+  # Folder Name
+  # By default we generate the hierachy within the
+  # 'azops' folder within the root of the repository.
+  # If this property is modified, the config value within
+  # the settings.json file - Core.State will also need
+  # to be changed.
+  #
+  # Default: azops
+  #
+
+  folder: "azops"
+
+  #
+  # Branch Name
+  # As part of the Pull workflow we check a temporary branch
+  # this branch was previously know as system, this value can
+  # be changed if this name is already reserved for other systems
+  # within the repository.
+  #
+  # Default: automated
+  #
+
+  branch: "automated"
+
+  #
+  # Commit Message
+  # During the Pull workflow, the changes are commited to the
+  # temporary branch, the message which is applied within the
+  # Git history can be changed as needed.
+  #
+  # Default: Automated commit
+  #
+
+  commit_message: "Automated commit"
+
+  #
+  # Pull Request
+  # The generated Pull Request for the Pull workflow can be
+  # modified to help indicate when changes we're merged in the
+  # Git history.
+  #
+  # Default: Automated state
+  #
+
+  pull_request: "Automated State"
+
 jobs:
+
   pull:
+
     #
     # Pull
     #
@@ -53,6 +102,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
+
       #
       # Checkout
       # Checks-out the repository
@@ -81,7 +131,7 @@ jobs:
 
       - name: "Checkout"
         run: |
-          git checkout -b automated
+          git checkout -b ${{ env.branch }}
         shell: bash
 
       #
@@ -131,10 +181,8 @@ jobs:
           echo $STATUS
           if [ -z "$STATUS" ]
           then
-            echo $STATUS
             echo "::set-output name=state::stop"
           else
-            echo $STATUS
             echo "::set-output name=state::continue"
           fi
         shell: bash
@@ -147,7 +195,7 @@ jobs:
       - name: "Add"
         if: steps.status.outputs.state == 'continue'
         run: |
-          git add ./azops
+          git add ./${{ env.folder }}
         shell: bash
 
       #
@@ -157,7 +205,7 @@ jobs:
 
       - name: "Commit"
         run: |
-          git commit -m "Automated commit"
+          git commit -m "${{ env.commit_message }}"
         shell: bash
         if: steps.status.outputs.state == 'continue'
 
@@ -168,7 +216,7 @@ jobs:
 
       - name: "Push"
         run: |
-          git push origin automated -f
+          git push origin ${{ env.branch }} -f
         shell: bash
         if: steps.status.outputs.state == 'continue'
 
@@ -179,7 +227,7 @@ jobs:
 
       - name: "Merge"
         run: |
-          gh pr create --title "Automated State" --body "..." --base ${{ github.ref }} --head "automated"
-          gh pr merge "automated" --squash --delete-branch
+          gh pr create --title "${{ env.pull_request }}" --body "-" --base ${{ github.ref }} --head ${{ env.branch }}
+          gh pr merge "${{ env.branch }}" --squash --delete-branch
         shell: bash
         if: steps.status.outputs.state == 'continue'
