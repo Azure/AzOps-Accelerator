@@ -1,8 +1,7 @@
 ---
-name: 'AzOps - Pull'
+name: "AzOps - Pull"
 
 on:
-
   #
   # Workflow Dispatch
   # This is to invoke the action from the GitHub UI
@@ -38,14 +37,12 @@ on:
     - cron: "0 */6 * * *"
 
 jobs:
-
   pull:
-
     #
     # Pull
     #
 
-    name: 'Pull'
+    name: "Pull"
     runs-on: ubuntu-20.04
 
     env:
@@ -56,13 +53,12 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-
       #
       # Checkout
       # Checks-out the repository
       #
 
-      - name: 'Checkout'
+      - name: "Checkout"
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
@@ -72,7 +68,7 @@ jobs:
       # Set global options
       #
 
-      - name: 'Configure'
+      - name: "Configure"
         run: |
           git config user.name github-actions
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -83,7 +79,7 @@ jobs:
       # Switch branches
       #
 
-      - name: 'Checkout'
+      - name: "Checkout"
         run: |
           git checkout -b automated
         shell: bash
@@ -93,19 +89,11 @@ jobs:
       # Install required runtime modules
       #
 
-      - name: 'Dependencies'
+      - name: "Dependencies"
         run: |
-          $modules = @(
-              @{ Name = "Az.Accounts"; Repository = "PSGallery"; RequiredVersion = "2.2.5" },
-              @{ Name = "Az.Billing"; Repository = "PSGallery"; RequiredVersion = "2.0.0" },
-              @{ Name = "Az.Resources"; Repository = "PSGallery"; RequiredVersion = "3.2.1" },
-              @{ Name = "PSFramework"; Repository = "PSGallery"; RequiredVersion = "1.6.181" },
-              @{ Name = "AzOps"; Repository = "PSGallery"; AllowPrerelease = $true }
-          )
-          $modules | ForEach-Object {
-              $module = $_
-              Install-Module @module -Force
-          }
+          $module = Find-Module -Name AzOps -AllowPrerelease
+          $module.Dependencies | ForEach-Object { Install-Module -Name $_.Name -RequiredVersion $_.MinimumVersion -Force }
+          Install-Module -Name AzOps -AllowPrerelease -Force
         shell: pwsh
 
       #
@@ -113,7 +101,7 @@ jobs:
       # Authenticate Azure context
       #
 
-      - name: 'Connect'
+      - name: "Connect"
         run: |
           $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
           Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
@@ -124,7 +112,7 @@ jobs:
       # Generate new state data
       #
 
-      - name: 'Initialize'
+      - name: "Initialize"
         run: |
           Import-PSFConfig -Path settings.json -Schema MetaJson
           Initialize-AzOpsRepository -Rebuild
@@ -136,7 +124,7 @@ jobs:
       # Check for data changes
       #
 
-      - name: 'Status'
+      - name: "Status"
         id: status
         run: |
           STATUS=$(git status --short)
@@ -156,7 +144,7 @@ jobs:
       # Add file content to index
       #
 
-      - name: 'Add'
+      - name: "Add"
         if: steps.status.outputs.state == 'continue'
         run: |
           git add ./azops
@@ -167,7 +155,7 @@ jobs:
       # Record changes to the repository
       #
 
-      - name: 'Commit'
+      - name: "Commit"
         run: |
           git commit -m "Automated commit"
         shell: bash
@@ -178,7 +166,7 @@ jobs:
       # Update remote refs along with associated objects
       #
 
-      - name: 'Push'
+      - name: "Push"
         run: |
           git push origin automated -f
         shell: bash
@@ -189,7 +177,7 @@ jobs:
       # Automatically merge the head branch into base
       #
 
-      - name: 'Merge'
+      - name: "Merge"
         run: |
           gh pr create --title "Automated State" --body "..." --base ${{ github.ref }} --head "automated"
           gh pr merge "automated" --squash --delete-branch
