@@ -2,7 +2,7 @@
 
 This template repository is for getting started with the AzOps integrated CI/CD solution.
 
-## Guides
+### Technical documentation
 
 * [Introduction](https://github.com/azure/azops-accelerator/wiki/introduction)
 * [Prerequisites](https://github.com/azure/azops-accelerator/wiki/prerequisites)
@@ -14,11 +14,12 @@ This template repository is for getting started with the AzOps integrated CI/CD 
   * [Push](https://github.com/azure/azops-accelerator/wiki/push)
 * [Private Feeds](https://github.com/azure/azops-accelerator/wiki/private-feeds)
   * [Azure Artifacts](https://github.com/azure/azops-accelerator/wiki/azure-artifacts)
-  * [GitHub Packages](https://github.com/azure/azOps-accelerator/wiki/GitHub-Packages)
+  * [GitHub Packages](https://github.com/Azure/AzOps-Accelerator/wiki/GitHub-Packages)
+* [Settings](https://github.com/azure/azops-accelerator/wiki/settings)
 * [Troubleshooting](https://github.com/azure/azops-accelerator/wiki/troubleshooting)
 * [FAQ](https://github.com/azure/azops-accelerator/wiki/frequently-asked-questions)
 
-## Contributing
+### Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
@@ -32,7 +33,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-## Trademarks
+### Trademarks
 
 This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
 trademarks or logos is subject to and must follow
