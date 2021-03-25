@@ -4,20 +4,38 @@ name: "AzOps - Push"
 #
 # Triggers
 # Automated triggers are configured via Branch Policies
-# within Azure Pipelines
+# within Azure Repos. It's also recommended to manually
+# disable CI triggers with overrides.
 #
 
 trigger: none
 
 variables:
+
+  #
+  # Credentials
+  # This reference is to the Variable Group which needs
+  # to be created which will contain the following values.
+  #
+  # - ARM_TENANT_ID
+  # - ARM_SUBSCRIPTION_ID
+  # - ARM_CLIENT_ID
+  # - ARM_CLIENT_SECRET
+  #
+
+  - group: credentials
+
   #
   # Strict Mode
   # Enable strict mode when pre consistency checking
   # is required on the repository. When disabled the
   # pre steps will be skipped.
   #
+  # Default: false
+  #
 
-  strict_mode: false
+  - name: strict_mode
+    value: false
 
   #
   # Auto Merge
@@ -26,13 +44,57 @@ variables:
   # head branch and the proposed pull request will be
   # merged directly into the base branch.
   #
+  # Default: true
+  #
 
-  auto_merge: true
+  - name: auto_merge
+    value: true
+
+  #
+  # Folder Name
+  # By default we generate the hierachy within the
+  # 'azops' folder within the root of the repository.
+  # If this property is modified, the config value within
+  # the settings.json file - Core.State will also need
+  # to be changed.
+  #
+  # Default: azops
+  #
+
+  - name: folder
+    value: "azops"
+
+  #
+  # Branch Name
+  # As part of the Pull workflow we check a temporary branch
+  # this branch was previously know as system, this value can
+  # be changed if this name is already reserved for other systems
+  # within the repository. Within the Push workflow we use this
+  # value to skip the Push if it's been trigger by the Pull commit.
+  #
+  # Default: automated
+  #
+
+  - name: branch
+    value: "refs/heads/automated"
+
+  #
+  # Commit Message
+  # During the Pull workflow, the changes are commited to the
+  # temporary branch, the message which is applied within the
+  # Git history can be changed as needed.
+  #
+  # Default: Automated commit
+  #
+
+  - name: commit_message
+    value: "Automated commit"
 
 pool:
   vmImage: "ubuntu-20.04"
 
 jobs:
+
   - job: pre
 
     #
@@ -43,9 +105,10 @@ jobs:
     #
 
     displayName: "Pre"
-    condition: and(eq(variables['Build.Reason'], 'PullRequest'), ne(variables['System.PullRequest.SourceBranch'], 'refs/heads/automated'))
+    condition: and(eq(variables['Build.Reason'], 'PullRequest'), ne(variables['System.PullRequest.SourceBranch'], variables['branch']))
 
     steps:
+
       #
       # Checkout
       # Checks-out the repository
@@ -54,6 +117,20 @@ jobs:
       - checkout: self
         fetchDepth: 0
         persistCredentials: true
+
+      #
+      # Switch
+      # Change working branch
+      #
+
+      - task: PowerShell@2
+        displayName: "Switch"
+        inputs:
+          targetType: "inline"
+          script: |
+            branchName=$(echo $(System.PullRequest.TargetBranch) | sed 's:refs/heads/::')
+            git switch -c $branchName
+        condition: contains(variables['strict_mode'], 'true')
 
       #
       # Dependencies
@@ -119,11 +196,25 @@ jobs:
               curl --request POST \
               --header "Authorization: Bearer $(System.AccessToken)" \
               --header "Content-Type: application/json" \
-              --data '{ "comments": [ { "parentCommentId": 0, "content": "Hello!", "commentType": 1 } ], "status": 1 }' \
+              --data '{ "comments": [ { "parentCommentId": 0, "content": "Unable to proceed the branch is out of sync with Azure.", "commentType": 1 } ], "status": 1 }' \
               --url "$( echo "$URL" | sed 's/ /%20/g' )"
             else
               echo "##vso[task.setvariable variable=state;isOutput=true]continue"
             fi
+        condition: contains(variables['strict_mode'], 'true')
+
+      #
+      # Skip
+      #
+
+      - task: Bash@3
+        displayName: "Skip"
+        name: skip
+        inputs:
+          targetType: "inline"
+          script: |
+            echo "##vso[task.setvariable variable=state;isOutput=true]continue"
+        condition: contains(variables['strict_mode'], 'false')
 
   - job: push
 
@@ -136,9 +227,10 @@ jobs:
 
     displayName: "Push"
     dependsOn: pre
-    condition: contains(dependencies.pre.outputs['issue.state'], 'continue')
+    condition: or(contains(dependencies.pre.outputs['issue.state'], 'continue'), contains(dependencies.pre.outputs['skip.state'], 'continue'))
 
     steps:
+
       #
       # Checkout
       # Checks-out the repository
@@ -185,7 +277,8 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            git diff origin/main --name-status > /tmp/diff.txt
+            branchName=$(echo $(System.PullRequest.TargetBranch) | sed 's:refs/heads/::')
+            git diff origin/$branchName --name-status > /tmp/diff.txt
 
       #
       # Deploy
@@ -215,9 +308,10 @@ jobs:
 
     displayName: "Post"
     dependsOn: push
-    condition: contains(dependencies.pre.outputs['issue.state'], 'continue')
+    condition: or(contains(dependencies.pre.outputs['issue.state'], 'continue'), contains(dependencies.pre.outputs['skip.state'], 'continue'))
 
     steps:
+
       #
       # Checkout
       # Checks-out the repository
@@ -250,8 +344,8 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            sourceBranchName=$(echo $(System.PullRequest.SourceBranch) | sed 's:refs/heads/::')
-            git switch -c $sourceBranchName
+            branchName=$(echo $(System.PullRequest.SourceBranch) | sed 's:refs/heads/::')
+            git switch -c $branchName
 
       #
       # Dependencies
@@ -308,10 +402,8 @@ jobs:
             echo $STATUS
             if [ -z "$STATUS" ]
             then
-              echo $STATUS
               echo "##vso[task.setvariable variable=state]stop"
             else
-              echo $STATUS
               echo "##vso[task.setvariable variable=state]continue"
             fi
 
@@ -325,7 +417,7 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            git add ./azops
+            git add ./$(folder)
             git status --short
         condition: contains(variables['state'], 'continue')
 
@@ -339,7 +431,7 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            git commit -m "Automated commit" -m "[skip ci]"
+            git commit -m "$(commit_message)" -m "[skip ci]"
         condition: contains(variables['state'], 'continue')
 
       #
@@ -352,8 +444,8 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            sourceBranchName=$(echo $(System.PullRequest.SourceBranch) | sed 's:refs/heads/::')
-            git push origin $sourceBranchName  -f
+            branchName=$(echo $(System.PullRequest.SourceBranch) | sed 's:refs/heads/::')
+            git push origin $branchName  -f
         condition: contains(variables['state'], 'continue')
 
       #

@@ -4,18 +4,19 @@ name: "AzOps - Pull"
 #
 # Triggers
 # Automated triggers are configured via Branch Policies
-# within Azure Pipelines
+# within Azure Repos. It's also recommended to manually
+# disable CI triggers with overrides.
 #
 
 trigger: none
 
 #
 # Schedule
-# This is an [optional] event to get latest Azure
-# hierarchy of Management Group and Subscription in
-# your Git in recurring manner. Default is every 6 hours
+# This is an optional trigger to pull the latest Azure
+# hierarchy into the Git repository in a recurring
+# manner.
 #
-# Adjust frequency based on your organization need
+# Default: Every 6 hours
 #
 
 schedules:
@@ -25,10 +26,77 @@ schedules:
         - main
     always: true
 
+variables:
+
+  #
+  # Credentials
+  # This reference is to the Variable Group which needs
+  # to be created which will contain the following values.
+  #
+  # - ARM_TENANT_ID
+  # - ARM_SUBSCRIPTION_ID
+  # - ARM_CLIENT_ID
+  # - ARM_CLIENT_SECRET
+  #
+
+  - group: credentials
+
+  #
+  # Folder Name
+  # By default we generate the hierachy within the
+  # 'azops' folder within the root of the repository.
+  # If this property is modified, the config value within
+  # the settings.json file - Core.State will also need
+  # to be changed.
+  #
+  # Default: azops
+  #
+
+  - name: folder
+    value: "azops"
+
+  #
+  # Branch Name
+  # As part of the Pull workflow we check a temporary branch
+  # this branch was previously know as system, this value can
+  # be changed if this name is already reserved for other systems
+  # within the repository.
+  #
+  # Default: automated
+  #
+
+  - name: branch
+    value: "automated"
+
+  #
+  # Commit Message
+  # During the Pull workflow, the changes are commited to the
+  # temporary branch, the message which is applied within the
+  # Git history can be changed as needed.
+  #
+  # Default: Automated commit
+  #
+
+  - name: commit_message
+    value: "Automated commit"
+
+  #
+  # Pull Request
+  # The generated Pull Request for the Pull workflow can be
+  # modified to help indicate when changes we're merged in the
+  # Git history.
+  #
+  # Default: Automated state
+  #
+
+  - name: pull_request
+    value: "Automated State"
+
 pool:
   vmImage: "ubuntu-20.04"
 
 jobs:
+
   - job: pull
 
     #
@@ -37,6 +105,7 @@ jobs:
 
     displayName: "Pull"
     steps:
+
       #
       # Checkout
       # Checks-out the repository
@@ -69,7 +138,7 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            git checkout -b automated
+            git checkout -b $(branch)
 
       #
       # Dependencies
@@ -126,10 +195,8 @@ jobs:
             echo $STATUS
             if [ -z "$STATUS" ]
             then
-              echo $STATUS
               echo "##vso[task.setvariable variable=state]stop"
             else
-              echo $STATUS
               echo "##vso[task.setvariable variable=state]continue"
             fi
 
@@ -143,7 +210,7 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            git add ./azops
+            git add ./$(folder)
         condition: contains(variables['state'], 'continue')
 
       #
@@ -156,7 +223,7 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            git commit -m "Automated commit"
+            git commit -m "$(commit_message)"
         condition: contains(variables['state'], 'continue')
 
       #
@@ -169,7 +236,7 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            git push origin automated -f
+            git push origin $(branch) -f
         condition: contains(variables['state'], 'continue')
 
       #
@@ -183,8 +250,8 @@ jobs:
           targetType: "inline"
           script: |
             az repos pr create \
-              --title "Automated State" \
-              --source-branch "automated" \
+              --title "$(pull_request)" \
+              --source-branch "$(branch)" \
               --target-branch "main" \
               --squash true \
               --delete-source-branch true \
