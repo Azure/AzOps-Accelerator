@@ -1,8 +1,7 @@
 ---
-name: 'AzOps - Push'
+name: "AzOps - Push"
 
 on:
-
   #
   # Pull Request
   # Automated workflow trigger when a pull request
@@ -12,7 +11,6 @@ on:
   pull_request:
 
 env:
-
   #
   # Strict Mode
   # Enable strict mode when pre consistency checking
@@ -33,9 +31,7 @@ env:
   auto_merge: true
 
 jobs:
-
   pre:
-
     #
     # Pre
     # Before running the resource deployment,
@@ -43,7 +39,7 @@ jobs:
     # is up to date and we won't encounter conflicts.
     #
 
-    name: 'Pre'
+    name: "Pre"
     runs-on: ubuntu-20.04
     outputs:
       diff: ${{ steps.issue.outputs.state }}
@@ -56,13 +52,12 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-
       #
       # Checkout
       # Checks-out the repository
       #
 
-      - name: 'Checkout'
+      - name: "Checkout"
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
@@ -73,19 +68,11 @@ jobs:
       # Install required runtime modules
       #
 
-      - name: 'Dependencies'
+      - name: "Dependencies"
         run: |
-          $modules = @(
-              @{ Name = "Az.Accounts"; Repository = "PSGallery"; RequiredVersion = "2.2.5" },
-              @{ Name = "Az.Billing"; Repository = "PSGallery"; RequiredVersion = "2.0.0" },
-              @{ Name = "Az.Resources"; Repository = "PSGallery"; RequiredVersion = "3.2.1" },
-              @{ Name = "PSFramework"; Repository = "PSGallery"; RequiredVersion = "1.6.181" },
-              @{ Name = "AzOps"; Repository = "PSGallery"; AllowPrerelease = $true }
-          )
-          $modules | ForEach-Object {
-              $module = $_
-              Install-Module @module -Force
-          }
+          $module = Find-Module -Name AzOps -AllowPrerelease
+          $module.Dependencies | ForEach-Object { Install-Module -Name $_.Name -RequiredVersion $_.MinimumVersion -Force }
+          Install-Module -Name AzOps -AllowPrerelease -Force
         shell: pwsh
         if: env.strict_mode == 'true'
 
@@ -94,7 +81,7 @@ jobs:
       # Authenticate Azure context
       #
 
-      - name: 'Connect'
+      - name: "Connect"
         run: |
           $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
           Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
@@ -106,7 +93,7 @@ jobs:
       # Generate new state data
       #
 
-      - name: 'Initialize'
+      - name: "Initialize"
         run: |
           Import-PSFConfig -Path settings.json -Schema MetaJson
           Initialize-AzOpsRepository -Rebuild
@@ -119,7 +106,7 @@ jobs:
       # Write issue and stop workflow
       #
 
-      - name: 'Issue'
+      - name: "Issue"
         id: issue
         run: |
           DIFF=$(git diff --ignore-space-at-eol --name-status)
@@ -134,7 +121,6 @@ jobs:
         shell: bash
 
   push:
-
     #
     # Push
     # Before running the resource deployment,
@@ -142,7 +128,7 @@ jobs:
     # is up to date and we won't encounter conflicts.
     #
 
-    name: 'Push'
+    name: "Push"
     runs-on: ubuntu-20.04
     needs: pre
     if: needs.pre.outputs.diff == 'continue'
@@ -154,13 +140,12 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
     steps:
-
       #
       # Checkout
       # Checks-out the repository
       #
 
-      - name: 'Checkout'
+      - name: "Checkout"
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
@@ -170,19 +155,11 @@ jobs:
       # Install required runtime modules
       #
 
-      - name: 'Dependencies'
+      - name: "Dependencies"
         run: |
-          $modules = @(
-              @{ Name = "Az.Accounts"; Repository = "PSGallery"; RequiredVersion = "2.2.5" },
-              @{ Name = "Az.Billing"; Repository = "PSGallery"; RequiredVersion = "2.0.0" },
-              @{ Name = "Az.Resources"; Repository = "PSGallery"; RequiredVersion = "3.2.1" },
-              @{ Name = "PSFramework"; Repository = "PSGallery"; RequiredVersion = "1.6.181" },
-              @{ Name = "AzOps"; Repository = "PSGallery"; AllowPrerelease = $true }
-          )
-          $modules | ForEach-Object {
-              $module = $_
-              Install-Module @module -Force
-          }
+          $module = Find-Module -Name AzOps -AllowPrerelease
+          $module.Dependencies | ForEach-Object { Install-Module -Name $_.Name -RequiredVersion $_.MinimumVersion -Force }
+          Install-Module -Name AzOps -AllowPrerelease -Force
         shell: pwsh
 
       #
@@ -190,7 +167,7 @@ jobs:
       # Authenticate Azure context
       #
 
-      - name: 'Connect'
+      - name: "Connect"
         run: |
           $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
           Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
@@ -201,7 +178,7 @@ jobs:
       # List index changes
       #
 
-      - name: 'Diff'
+      - name: "Diff"
         id: diff
         run: |
           echo $(git diff origin/main --name-status)
@@ -213,7 +190,7 @@ jobs:
       # Initial deployment of any index changes
       #
 
-      - name: 'Deploy'
+      - name: "Deploy"
         run: |
           Initialize-AzOpsEnvironment
           Import-PSFConfig -Path settings.json -Schema MetaJson
@@ -224,7 +201,6 @@ jobs:
         shell: pwsh
 
   post:
-
     #
     # Post
     # Before running the resource deployment,
@@ -232,7 +208,7 @@ jobs:
     # is up to date and we won't encounter conflicts.
     #
 
-    name: 'Post'
+    name: "Post"
     runs-on: ubuntu-20.04
     needs: push
     if: needs.pre.outputs.diff == 'continue'
@@ -245,13 +221,12 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-
       #
       # Checkout
       # Checks-out the repository
       #
 
-      - name: 'Checkout'
+      - name: "Checkout"
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
@@ -261,7 +236,7 @@ jobs:
       # Set global options
       #
 
-      - name: 'Configure'
+      - name: "Configure"
         run: |
           git config user.name github-actions
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -272,7 +247,7 @@ jobs:
       # Change working branch
       #
 
-      - name: 'Switch'
+      - name: "Switch"
         run: |
           git switch -c ${{ github.head_ref }}
         shell: bash
@@ -282,19 +257,11 @@ jobs:
       # Install required runtime modules
       #
 
-      - name: 'Dependencies'
+      - name: "Dependencies"
         run: |
-          $modules = @(
-              @{ Name = "Az.Accounts"; Repository = "PSGallery"; RequiredVersion = "2.2.5" },
-              @{ Name = "Az.Billing"; Repository = "PSGallery"; RequiredVersion = "2.0.0" },
-              @{ Name = "Az.Resources"; Repository = "PSGallery"; RequiredVersion = "3.2.1" },
-              @{ Name = "PSFramework"; Repository = "PSGallery"; RequiredVersion = "1.6.181" },
-              @{ Name = "AzOps"; Repository = "PSGallery"; AllowPrerelease = $true }
-          )
-          $modules | ForEach-Object {
-              $module = $_
-              Install-Module @module -Force
-          }
+          $module = Find-Module -Name AzOps -AllowPrerelease
+          $module.Dependencies | ForEach-Object { Install-Module -Name $_.Name -RequiredVersion $_.MinimumVersion -Force }
+          Install-Module -Name AzOps -AllowPrerelease -Force
         shell: pwsh
 
       #
@@ -302,7 +269,7 @@ jobs:
       # Authenticate Azure context
       #
 
-      - name: 'Connect'
+      - name: "Connect"
         run: |
           $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
           Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
@@ -313,7 +280,7 @@ jobs:
       # Generate new state data
       #
 
-      - name: 'Initialize'
+      - name: "Initialize"
         run: |
           Import-PSFConfig -Path settings.json -Schema MetaJson
           Initialize-AzOpsRepository -Rebuild
@@ -325,7 +292,7 @@ jobs:
       # Check for data changes
       #
 
-      - name: 'Status'
+      - name: "Status"
         id: status
         run: |
           STATUS=$(git status --short)
@@ -345,7 +312,7 @@ jobs:
       # Add file content to index
       #
 
-      - name: 'Add'
+      - name: "Add"
         run: |
           git add ./azops
           git status --short
@@ -357,7 +324,7 @@ jobs:
       # Record changes to the repository
       #
 
-      - name: 'Commit'
+      - name: "Commit"
         run: |
           git commit -m "Automated commit"
         shell: bash
@@ -368,7 +335,7 @@ jobs:
       # Update remote refs along with associated objects
       #
 
-      - name: 'Push'
+      - name: "Push"
         run: |
           git push origin ${{ github.head_ref }}
         shell: bash
@@ -379,7 +346,7 @@ jobs:
       # Automatically merge the Pull Request into base
       #
 
-      - name: 'Merge'
+      - name: "Merge"
         run: |
           gh pr merge ${{ github.event.pull_request.head.ref }} --squash --delete-branch
         shell: bash
