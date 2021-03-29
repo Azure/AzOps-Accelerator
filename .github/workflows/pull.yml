@@ -47,7 +47,7 @@ env:
   # Default: azops
   #
 
-  folder: "azops"
+  folder: "root"
 
   #
   # Branch Name
