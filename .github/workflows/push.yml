@@ -104,9 +104,9 @@ jobs:
 
       - name: "Dependencies"
         run: |
-          $module = Find-Module -Name AzOps -AllowPrerelease
+          $module = Find-Module -Name AzOps
           $module.Dependencies | ForEach-Object { Install-Module -Name $_.Name -RequiredVersion $_.MinimumVersion -Force }
-          Install-Module -Name AzOps -AllowPrerelease -Force
+          Install-Module -Name AzOps -Force
         shell: pwsh
         if: env.strict_mode == 'true'
 
@@ -205,9 +205,9 @@ jobs:
 
       - name: "Dependencies"
         run: |
-          $module = Find-Module -Name AzOps -AllowPrerelease
+          $module = Find-Module -Name AzOps
           $module.Dependencies | ForEach-Object { Install-Module -Name $_.Name -RequiredVersion $_.MinimumVersion -Force }
-          Install-Module -Name AzOps -AllowPrerelease -Force
+          Install-Module -Name AzOps -Force
         shell: pwsh
 
       #
@@ -309,9 +309,9 @@ jobs:
 
       - name: "Dependencies"
         run: |
-          $module = Find-Module -Name AzOps -AllowPrerelease
+          $module = Find-Module -Name AzOps
           $module.Dependencies | ForEach-Object { Install-Module -Name $_.Name -RequiredVersion $_.MinimumVersion -Force }
-          Install-Module -Name AzOps -AllowPrerelease -Force
+          Install-Module -Name AzOps -Force
         shell: pwsh
 
       #
