@@ -150,9 +150,9 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            $module = Find-Module -Name AzOps -AllowPrerelease
+            $module = Find-Module -Name AzOps
             $module.Dependencies | ForEach-Object { Install-Module -Name $_.Name -RequiredVersion $_.MinimumVersion -Force }
-            Install-Module -Name AzOps -AllowPrerelease -Force
+            Install-Module -Name AzOps -Force
 
       #
       # Connect
