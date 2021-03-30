@@ -49,11 +49,11 @@ variables:
   # the settings.json file - Core.State will also need
   # to be changed.
   #
-  # Default: azops
+  # Default: root
   #
 
   - name: folder
-    value: "azops"
+    value: "root"
 
   #
   # Branch Name

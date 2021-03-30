@@ -44,10 +44,10 @@ env:
   # the settings.json file - Core.State will also need
   # to be changed.
   #
-  # Default: azops
+  # Default: root
   #
 
-  folder: "azops"
+  folder: "root"
 
   #
   # Branch Name
