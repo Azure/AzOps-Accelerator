@@ -163,9 +163,14 @@ jobs:
       - name: "Initialize"
         run: |
           Import-PSFConfig -Path settings.json -Schema MetaJson
+          if ($env:ACTION -eq "Enterprise-Scale Deployment") {
+            Set-PSFConfig -FullName AzOps.Core.SkipResource -Value $false
+          }
           Initialize-AzOpsRepository -Rebuild
           Get-Job | Remove-Job -Force
         shell: pwsh
+        env:
+          ACTION: ${{ github.event.action }}
 
       #
       # Status
