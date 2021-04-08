@@ -29,7 +29,7 @@
             "Core.SkipPolicy": false,
             "Core.SkipResourceGroup": false,
             "Core.SkipResource": true,
-            "Core.SkipRole": true,
+            "Core.SkipRole": false,
             "Core.State": "",
             "Core.SubscriptionsToIncludeResourceGroups": "*",
             "Core.SupportPartialMgDiscovery": false,
