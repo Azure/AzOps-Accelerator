@@ -356,7 +356,7 @@ jobs:
 
       - name: "Add"
         run: |
-          git add ./${{ env.folder }}
+          git add "./${{ env.folder }}"
           git status --short
         shell: bash
         if: steps.status.outputs.state == 'continue'
