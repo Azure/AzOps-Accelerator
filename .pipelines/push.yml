@@ -411,7 +411,7 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            git add ./$(folder)
+            git add "./$(folder)"
             git status --short
         condition: contains(variables['state'], 'continue')
 
