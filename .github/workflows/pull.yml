@@ -198,7 +198,7 @@ jobs:
       - name: "Add"
         if: steps.status.outputs.state == 'continue'
         run: |
-          git add ./${{ env.folder }}
+          git add "./${{ env.folder }}"
         shell: bash
 
       #
