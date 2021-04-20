@@ -208,7 +208,7 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            git add ./$(folder)
+            git add "./$(folder)"
         condition: contains(variables['state'], 'continue')
 
       #
