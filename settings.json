@@ -32,7 +32,6 @@
             "Core.SkipRole": false,
             "Core.State": "",
             "Core.SubscriptionsToIncludeResourceGroups": "*",
-            "Core.SupportPartialMgDiscovery": false,
             "Core.TemplateParameterFileSuffix": ".json",
             "Core.ThrottleLimit": 10
         },
