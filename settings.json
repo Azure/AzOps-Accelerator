@@ -19,7 +19,6 @@
                 "Expired"
             ],
             "Core.ExportRawTemplate": false,
-            "Core.GeneralizeTemplates": false,
             "Core.IgnoreContextCheck": false,
             "Core.InvalidateCache": true,
             "Core.OfferType": "MS-AZR-0017P",
