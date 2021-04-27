@@ -5,7 +5,7 @@ This template repository is for getting started with the AzOps integrated CI/CD 
 ### Samples
 
 * [GitHub Actions](https://github.com/Azure/AzOps-Accelerator/tree/main/.github/samples)
-* [Azure Pipelines(https://github.com/Azure/AzOps-Accelerator/tree/main/.pipelines/samples)
+* [Azure Pipelines](https://github.com/Azure/AzOps-Accelerator/tree/main/.pipelines/samples)
 
 ### Documentation
 
