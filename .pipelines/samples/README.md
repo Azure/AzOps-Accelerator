@@ -15,7 +15,7 @@ The key changes over the core AzOps Accelerator pipelines are;
 
 1. Two sets of Push and Pull pipelines
 1. Two configuration files for each pair of pipelines
-1. Use of [Azure DevOps templates](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/templates?view=azure-devops)  to eliminate duplication of code between the pipelines
+1. Use of [Azure DevOps templates](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/templates?view=azure-devops) to eliminate duplication of code between the pipelines
 1. Two sets of branches used to capture changes from each of the environments
 1. Introduction of Pipeline Environments to enable Environment Approvers
 
@@ -27,4 +27,4 @@ It's advised to use different Service Principals to access each environment. Eac
 
 #### Environment names
 
-The terms Canary and Prod are embedded throughout the sample files, where your Reference Implementation Prefix is different these replacements will need to be made.
+The terms Canary and Prod are embedded throughout the sample files. Where your Reference Implementation Prefix is different, these replacements will need to be made.
