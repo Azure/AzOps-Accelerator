@@ -1,0 +1,8 @@
+steps:
+- task: Bash@3
+  displayName: "Configure. Set Global GIT config"
+  inputs:
+    targetType: "inline"
+    script: |
+      git config user.name "AzOps"
+      git config user.email "azuredevops@microsoft.com"

@@ -1,0 +1,54 @@
+steps:
+- task: Bash@3
+  displayName: "Check for existing Pull Request"
+  name: prexist
+  inputs:
+    targetType: "inline"
+    script: |
+      echo "Checking for existing, active Pull requests between $(workingbranch) and $(targetbranch)"
+      ACTIVEPRS=$(az repos pr list \
+          -s "$(workingbranch)" \
+          -t "$(targetbranch)" \
+          --status active \
+          --query "[].[pullRequestId, title, createdBy.displayName]")
+      
+      echo "Active Pull requests"
+      echo $ACTIVEPRS
+
+      PRCOUNT=$(echo $ACTIVEPRS | jq -r length)
+      echo "$PRCOUNT pull request found"
+      
+      if [ "$PRCOUNT" -eq "0" ]
+      then
+          echo "Setting Job variable to Create PR"
+          echo "##vso[task.setvariable variable=createpr]true"
+      else
+          echo "Setting Job variable to Skip PR Creation as it already exists"
+          echo "##vso[task.setvariable variable=createpr]skip"
+      fi
+  env:
+    AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+
+- task: Bash@3
+  displayName: "Create Pull Request to automerge"
+  inputs:
+    targetType: "inline"
+    script: |
+      PRID=$(az repos pr create \
+          --title "$(pull_request)" \
+          --source-branch "$(workingbranch)" \
+          --target-branch "$(targetbranch)" \
+          --squash true \
+          --delete-source-branch true \
+          --auto-complete true \
+          --query "pullRequestId" -o tsv)
+
+      echo "PullRequest $PRID created"
+
+      #Build policies can prevent the automatic completion of the PR
+      #This command will force the PR to complete, but ONLY IF the Build Service has permissions granted to bypass policy
+      az repos pr update --id $PRID --status completed --bypass-policy true --bypass-policy-reason "AzOps automated complete"
+
+  condition: and(contains(variables['state'], 'continue'),contains(variables['createpr'], 'true'))
+  env:
+    AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)

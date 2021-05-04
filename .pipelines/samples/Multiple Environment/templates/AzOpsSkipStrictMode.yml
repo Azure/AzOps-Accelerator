@@ -1,0 +1,14 @@
+jobs:
+- job: preskip
+  displayName: "Skip OOB Change check"
+  dependsOn: pre
+  condition: contains(variables['strict_mode'], 'false')
+  steps:
+  - task: Bash@3
+    displayName: "Set state based on strict mode"
+    name: skip
+    inputs:
+      targetType: "inline"
+      script: |
+        echo "Setting state variable to Continue*"
+        echo "##vso[task.setvariable variable=state;isOutput=true]continue"

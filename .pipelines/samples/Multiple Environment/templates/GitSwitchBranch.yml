@@ -1,0 +1,9 @@
+steps:
+- task: Bash@3
+  displayName: "Switch. Change working branch"
+  inputs:
+    targetType: "inline"
+    script: |
+      branchName="$(workingbranch)"
+      echo "Switcing to branch $branchName"
+      git switch -c $branchName

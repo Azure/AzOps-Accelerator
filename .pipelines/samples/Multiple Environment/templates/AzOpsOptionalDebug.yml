@@ -1,0 +1,40 @@
+steps:
+- task: PowerShell@2
+  displayName: "Parse SettingsFile"
+  inputs:
+    targetType: "inline"
+    script: |
+      #This task is focussed on ensuring the provided settings file can be imported successfully by PSF
+      
+      $settingsPath="$(settingsfile)"
+      Write-Output "Using $settingsPath"
+      Write-Output $(Get-Content $settingsPath)
+
+      #Calling Import Config with -EnableException will cause the pipeline to error out if there are issues loading the settings.json file, eg. Invalid Json.
+      $log=Import-PSFConfig -Path $settingsPath -Schema MetaJson -EnableException
+      
+      #Write-Output "PSFConfig out"
+      #Write-Output "-------------"
+      #Write-Output $log
+
+      #if ($out -like "*Warning*") { Write-Error "Warning encountered parsing settings file"} else {Write-Host "No Warnings detected."}
+
+
+#- task: PowerShell@2
+#  displayName: "General"
+#  inputs:
+#    targetType: "inline"
+#    script: |
+#    Get-PSFConfig PSFramework.Message.Info.Maximum
+#    Set-PSFConfig PSFramework.Message.Info.Maximum 9
+#
+#    $path = join-path -path "$(System.DefaultWorkingDirectory)" -childpath "$(folder)"
+#    Write-Output "Using Path: " $path
+#
+#    Set-PSFConfig -FullName  AzOps.Core.State $path
+#
+#    Write-Output "Getting PSFramework logging level"
+#    Get-PSFConfig PSFramework.Message.Info.Maximum
+#
+#    Write-Output "Getting AzOps State path"
+#    Get-PSFConfig AzOps.Core.State | fl

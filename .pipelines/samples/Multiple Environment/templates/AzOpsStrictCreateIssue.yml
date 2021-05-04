@@ -1,0 +1,21 @@
+steps:
+- task: Bash@3
+  displayName: "Issue. Write issue and stop workflow"
+  name: issue
+  inputs:
+    targetType: "inline"
+    script: |
+      DIFF=$(git diff --ignore-space-at-eol --name-status)
+      echo $DIFF
+      if [ -n "$DIFF" ]
+      then
+        echo "##vso[task.setvariable variable=state;isOutput=true]stop"
+        URL="$(System.CollectionUri)/$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.Name)/pullRequests/$(System.PullRequest.PullRequestId)/threads?api-version=6.0"
+        curl --request POST \
+        --header "Authorization: Bearer $(System.AccessToken)" \
+        --header "Content-Type: application/json" \
+        --data '{ "comments": [ { "parentCommentId": 0, "content": "Unable to proceed the branch is out of sync with Azure.", "commentType": 1 } ], "status": 1 }' \
+        --url "$( echo "$URL" | sed 's/ /%20/g' )"
+      else
+        echo "##vso[task.setvariable variable=state;isOutput=true]continue"
+      fi

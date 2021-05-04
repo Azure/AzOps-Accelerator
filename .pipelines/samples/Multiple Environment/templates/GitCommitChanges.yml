@@ -1,0 +1,41 @@
+steps:
+- task: Bash@3
+  displayName: "Status. Check for data changes"
+  inputs:
+    targetType: "inline"
+    script: |
+      STATUS=$(git status --short)
+      echo $STATUS
+      if [ -z "$STATUS" ]
+      then
+        echo "##vso[task.setvariable variable=state]stop"
+      else
+        echo "##vso[task.setvariable variable=state]continue"
+      fi
+
+- task: Bash@3
+  displayName: "Add file content to index"
+  inputs:
+    targetType: "inline"
+    script: |
+      folderpath="$(folder)"
+      echo "Adding changes from directory path $folderpath"
+      git add "./$folderpath"
+      git status --short
+  condition: contains(variables['state'], 'continue')
+
+- task: Bash@3
+  displayName: "Commit changes to the repository"
+  inputs:
+    targetType: "inline"
+    script: |
+      git commit --allow-empty -m "$(commit_message)" -m "[skip ci]"
+  condition: contains(variables['state'], 'continue')
+
+- task: Bash@3
+  displayName: "Push. Update remote refs along with associated objects"
+  inputs:
+    targetType: "inline"
+    script: |
+      git push origin $(workingbranch)  -f
+  condition: contains(variables['state'], 'continue')

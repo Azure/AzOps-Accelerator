@@ -1,0 +1,12 @@
+steps:
+- task: Bash@3
+  displayName: "Diff. List index changes"
+  inputs:
+    targetType: "inline"
+    script: |
+      branchName="$(workingbranch)"
+
+      echo "Creating diff for branch $branchName"
+      git diff origin/$branchName --name-status > /tmp/diff.txt
+
+      cat /tmp/diff.txt

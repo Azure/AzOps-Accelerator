@@ -1,0 +1,9 @@
+steps:
+- task: PowerShell@2
+  displayName: "Install AzOps and Dependencies"
+  inputs:
+    targetType: "inline"
+    script: |
+      Install-Module -Name AzOps -AllowPrerelease -Force
+      
+      Get-InstalledModule | select Name, Version, Repository, InstalledDate | ft

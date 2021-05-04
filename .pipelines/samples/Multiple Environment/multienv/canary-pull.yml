@@ -1,0 +1,65 @@
+---
+name: "AzOps - Canary - Pull"
+trigger: none
+
+schedules:
+  - cron: "0 */3 * * *"
+    branches:
+      include:
+        - main
+    always: true
+
+variables:
+  - group: AZURECREDENTIALS_CANARY
+
+  - name: folder
+    value: "azops-canary"
+  - name: settingsfile
+    value: "azops-canary-settings.json"
+
+  - name: commit_message
+    value: "Automated commit"
+  - name: pull_request
+    value: "AzOps (Canary) Automated State"
+
+  - name: workingbranch
+    value: "automated-canary"
+  - name: targetbranch
+    value: "main"
+
+pool:
+  vmImage: "ubuntu-20.04"
+
+jobs:
+  - job: pull
+    displayName: "Pull"
+    steps:
+      - checkout: self
+        displayName: "Checkout repo"
+        fetchDepth: 0
+        persistCredentials: true
+
+      # Git Global Config
+      - template: ../templates/GitConfig.yml
+
+      # Switch to working branch
+      - template: ../templates/GitSwitchBranch.yml
+
+      # Install required runtime modules
+      - template: ../templates/AzOpsInstall.yml
+
+      # Debug Output
+      #- template: ../templates/AzOpsOptionalDebug.yml
+      
+      # Authenticate Azure context
+      - template: ../templates/AzureLoginWithSp.yml
+
+      # Initialize new state data
+      - template: ../templates/AzOpsStateRebuild.yml
+
+      # Check and commit changes
+      - template: ../templates/GitCommitChanges.yml
+
+      # Create PR
+      - template: ../templates/GitCreatePullPR.yml
+
