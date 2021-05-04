@@ -17,6 +17,7 @@ The key changes over the core AzOps Accelerator pipelines are;
 1. Two configuration files for each pair of pipelines
 1. Use of [Azure DevOps templates](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/templates?view=azure-devops)  to eliminate duplication of code between the pipelines
 1. Two sets of branches used to capture changes from each of the environments
+1. Introduction of Azure Environments to enable Environment Approvers
 
 ### Implementation Notes
 
