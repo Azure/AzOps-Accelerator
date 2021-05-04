@@ -3,7 +3,7 @@
 ## Multi-Environment
 
 The Multi-Environment sample demonstrates how to use AzOps where segregation between management groups is required.
-This approach would fit where there are two Enterprise Scale reference implementations (canary and productions).
+This approach would fit where there are two Enterprise Scale reference implementations (canary and production).
 
 This is most suited to enterprises with *robust change management processes* governing changes to the production management group hierarchy. The Canary environment can be independently used to author and test deployments before taking the same Arm templates into the Production environment.
 
