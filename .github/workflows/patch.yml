@@ -10,6 +10,16 @@ on:
 
   workflow_dispatch:
 
+env:
+
+  #
+  # Branch Name
+  #
+  # Default: patch
+  #
+
+  branch: "patch"
+
 jobs:
 
   patch:
@@ -74,6 +84,7 @@ jobs:
 
     #
     # Commit
+    # Record changes to the repository
     #
 
     - name: "Commit"
@@ -83,10 +94,10 @@ jobs:
         echo $DIFF
         if [ -n "$DIFF" ]
         then
-          git checkout -b patch
+          git checkout -b ${{ env.branch }}
           git add .github/
           git commit -m 'Patch commit'
-          git push origin patch
+          git push origin ${{ env.branch }} -f
           echo "::set-output name=state::continue"
         fi
       working-directory: 'origin'
@@ -94,12 +105,13 @@ jobs:
 
     #
     # Merge
+    # Automatically merge the head branch into base
     #
 
     - name: "Merge"
       if: steps.commit.outputs.state == 'continue'
       run: |
-        gh pr create --base 'main' --head 'patch' --title 'GitHub Actions' --body 'New workflow version available from the upstream repository.'
+        gh pr create --base 'main' --head ${{ env.branch }} --title 'GitHub Actions' --body 'New workflow version available from the upstream repository.'
       working-directory: 'origin'
       shell: bash
       env:
