@@ -1,0 +1,118 @@
+---
+name: "AzOps - Patch"
+
+on:
+
+  #
+  # Workflow Dispatch
+  # This is to invoke the action from the GitHub UI
+  #
+
+  workflow_dispatch:
+
+env:
+
+  #
+  # Branch Name
+  #
+  # Default: patch
+  #
+
+  branch: "patch"
+
+jobs:
+
+  patch:
+
+    #
+    # Patch
+    #
+
+    name: "Patch"
+    runs-on: ubuntu-20.04
+
+    steps:
+
+    #
+    # Checkout
+    # Checks-out the repository
+    # Repo: origin
+    #
+
+    - name: "Checkout"
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.WORKFLOW_TOKEN }}
+        fetch-depth: 0
+        path: 'origin'
+
+    #
+    # Checkout
+    # Checks-out the repository
+    # Repo: upstream
+    #
+
+    - name: "Checkout"
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        repository: 'Azure/AzOps-Accelerator'
+        fetch-depth: 0
+        path: 'upstream'
+
+    #
+    # Configure
+    # Set global options
+    #
+
+    - name: "Configure"
+      run: |
+        git config user.name 'github-actions'
+        git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+      working-directory: 'origin'
+      shell: bash
+
+    #
+    # Copy
+    # Update the workflow files
+    #
+
+    - name: "Copy"
+      run: |
+        cp ./upstream/.github/workflows/* ./origin/.github/workflows/
+      shell: bash
+
+    #
+    # Commit
+    # Record changes to the repository
+    #
+
+    - name: "Commit"
+      id: commit
+      run: |
+        DIFF=$(git diff --name-only)
+        echo $DIFF
+        if [ -n "$DIFF" ]
+        then
+          git checkout -b ${{ env.branch }}
+          git add .github/
+          git commit -m 'Patch commit'
+          git push origin ${{ env.branch }} -f
+          echo "::set-output name=state::continue"
+        fi
+      working-directory: 'origin'
+      shell: bash
+
+    #
+    # Merge
+    # Automatically merge the head branch into base
+    #
+
+    - name: "Merge"
+      if: steps.commit.outputs.state == 'continue'
+      run: |
+        gh pr create --base 'main' --head ${{ env.branch }} --title 'GitHub Actions' --body 'New workflow version available from the upstream repository.'
+      working-directory: 'origin'
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
