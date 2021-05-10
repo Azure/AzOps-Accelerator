@@ -1,0 +1,14 @@
+steps:
+- task: Bash@3
+  displayName: "AutoMerge the Pull Request into base"
+  inputs:
+    targetType: "inline"
+    script: |
+        az repos pr update \
+        --id $(System.PullRequest.PullRequestId) \
+        --auto-complete true \
+        --squash true \
+        --delete-source-branch true
+  env:
+    AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+  condition: contains(variables['auto_merge'], 'true')

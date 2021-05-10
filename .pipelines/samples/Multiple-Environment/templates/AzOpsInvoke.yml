@@ -1,0 +1,13 @@
+steps:
+- task: PowerShell@2
+  displayName: "Deploy. Initial deployment of any index changes"
+  inputs:
+    targetType: "inline"
+    script: |
+        $settingsPath="$(settingsfile)"
+        Import-PSFConfig -Path $settingsPath -Schema MetaJson
+        Initialize-AzOpsEnvironment
+        $diff = Get-Content -Path /tmp/diff.txt
+        $module = Get-Module -Name AzOps
+        $module.Invoke({ Invoke-AzOpsChange -ChangeSet $diff })
+        Get-Job | Remove-Job -Force

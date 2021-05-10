@@ -1,0 +1,17 @@
+steps:
+- task: PowerShell@2
+  displayName: "Connect to Azure"
+  inputs:
+    targetType: "inline"
+    script: |
+      #This template file is useful when migrating from an AzOps pipeline that leverages variables inside the pipeline
+      $AZURE_CREDENTIALS='$(AZURE_CREDENTIALS)'
+      $jAZCreds=$AZURE_CREDENTIALS.replace('\"','"') | ConvertFrom-Json
+      
+      $ARM_CLIENT_ID=$jAZCreds.clientId
+      $ARM_CLIENT_SECRET=$jAZCreds.clientSecret
+      $ARM_TENANT_ID=$jAZCreds.tenantId
+      $ARM_SUBSCRIPTION_ID=$jAZCreds.subscriptionId
+      
+      $credential = New-Object PSCredential -ArgumentList $ARM_CLIENT_ID, (ConvertTo-SecureString -String $ARM_CLIENT_SECRET -AsPlainText -Force)
+      Connect-AzAccount -TenantId $ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $ARM_SUBSCRIPTION_ID

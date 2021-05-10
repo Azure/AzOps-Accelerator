@@ -1,0 +1,8 @@
+steps:
+- task: PowerShell@2
+  displayName: "Connect to Azure"
+  inputs:
+    targetType: "inline"
+    script: |
+      $credential = New-Object PSCredential -ArgumentList $(ARM_CLIENT_ID), (ConvertTo-SecureString -String $(ARM_CLIENT_SECRET) -AsPlainText -Force)
+      Connect-AzAccount -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)

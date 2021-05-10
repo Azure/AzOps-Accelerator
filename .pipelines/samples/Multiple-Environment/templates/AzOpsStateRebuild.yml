@@ -1,0 +1,10 @@
+steps:
+- task: PowerShell@2
+  displayName: "Initialize. Generate new state data"
+  inputs:
+    targetType: "inline"
+    script: |
+      Import-PSFConfig -Path "$(settingsfile)" -Schema MetaJson -EnableException
+      Initialize-AzOpsRepository -Rebuild
+      Get-Job | Remove-Job -Force
+

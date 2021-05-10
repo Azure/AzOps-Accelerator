@@ -1,0 +1,165 @@
+---
+name: "AzOps - Prod - Push"
+trigger: none
+
+variables:
+  - group: AZURECREDENTIALS_PROD
+
+  - name: folder
+    value: "azops-prod"
+  - name: settingsfile
+    value: "azops-prod-settings.json"
+
+  - name: strict_mode
+    value: false
+
+  - name: auto_merge
+    value: false
+  - name: commit_message
+    value: "Automated commit"
+  - name: tempbranch
+    value: "refs/heads/automated-prod"
+  - name: workingbranch
+    value: $(echo $(System.PullRequest.SourceBranch) | sed 's:refs/heads/::')
+
+pool:
+  vmImage: "ubuntu-20.04"
+
+stages:
+- stage: BuildReasonCheck
+  condition: and(eq(variables['Build.Reason'], 'PullRequest'), ne(variables['System.PullRequest.SourceBranch'], variables['tempbranch']))
+  jobs:
+  - job:
+    timeoutInMinutes: 10
+    displayName: BuildCheck
+    steps:
+    - bash: | 
+        echo "This stage validates the build reason of $(Build.Reason). The PR number was $(System.PullRequest.PullRequestId)."
+        echo "It runs on a separate stage which is NOT linked to an environment in order to avoid waiting for unnecessary environment approvals if the BuildReason and Branch conditions are not satisfied"
+      displayName: About
+    - bash: | 
+        echo "Source Branch is $(System.PullRequest.SourceBranch)"
+        echo "Target Branch is $(System.PullRequest.TargetBranch)"
+        echo "AzOps folder is defined as : $(folder)"
+        echo "AzOps settings file is : $(settingsfile)"
+      displayName: Config parameters 
+- stage: AzOps
+  dependsOn: BuildReasonCheck
+  jobs:
+    - deployment: EnvironmentApproval
+      displayName: "Wait for Environment Approval"
+      environment: 'Prod'
+
+    - job: pre
+      displayName: "Check for OOB Changes"
+      condition: and(contains(variables['strict_mode'], 'true'), eq(variables['Build.Reason'], 'PullRequest'), ne(variables['System.PullRequest.SourceBranch'], variables['tempbranch']))
+      variables:
+        workingbranch: $(echo $(System.PullRequest.TargetBranch) | sed 's:refs/heads/::')
+      steps:
+      - checkout: self
+        displayName: "Checkout the repository"
+        fetchDepth: 0
+        persistCredentials: true
+        
+      # Switch to working branch
+      - template: ../templates/GitSwitchBranch.yml
+
+      # Install required runtime modules
+      - template: ../templates/AzOpsInstall.yml
+
+      # Authenticate Azure context
+      - template: ../templates/AzureLoginWithSp.yml
+
+      # Initialize new state data
+      - template: ../templates/AzOpsStateRebuild.yml
+
+      # Create AzDO Issue
+      - template: ../templates/AzOpsStrictCreateIssue.yml
+
+    # Skip Strict mode job
+    - template: ../templates/AzOpsSkipStrictMode.yml
+    
+    - job: push
+      displayName: "Push to Azure"
+      dependsOn: 
+      - pre
+      - preskip
+      condition: or(contains(dependencies.preskip.outputs['skip.state'], 'continue'), contains(dependencies.pre.outputs['issue.state'], 'continue'))
+      variables:
+        workingbranch: $(echo $(System.PullRequest.TargetBranch) | sed 's:refs/heads/::')
+
+      steps:
+        - checkout: self
+          displayName: "Checkout the repository"
+          fetchDepth: 0
+          persistCredentials: true
+
+        # Install required runtime modules
+        - template: ../templates/AzOpsInstall.yml
+
+        # Authenticate Azure context
+        - template: ../templates/AzureLoginWithSp.yml
+
+        # Create git difference
+        - template: ../templates/GitCreateDiff.yml
+
+        # Invoke AzOps to deploy changes
+        - template: ../templates/AzOpsInvoke.yml
+
+    - job: post
+      displayName: "Reflect changes in ADO repo"
+      dependsOn: 
+      - push
+      - pre
+      - preskip
+      condition: or(contains(dependencies.preskip.outputs['skip.state'], 'continue'), contains(dependencies.pre.outputs['issue.state'], 'continue'))
+      variables:
+        workingbranch: $(echo $(System.PullRequest.SourceBranch) | sed 's:refs/heads/::')
+
+      steps:
+        - checkout: self
+          displayName: "Checks-out the repository"
+          fetchDepth: 0
+          persistCredentials: true
+
+        # Git Global Config
+        - template: ../templates/GitConfig.yml
+
+        # Switch to working branch
+        - template: ../templates/GitSwitchBranch.yml
+
+        # Install required runtime modules
+        - template: ../templates/AzOpsInstall.yml
+
+        # Authenticate Azure context
+        - template: ../templates/AzureLoginWithSp.yml
+        
+        # Initialize new state data
+        - template: ../templates/AzOpsStateRebuild.yml
+
+        # Check and commit changes
+        - template: ../templates/GitCommitChanges.yml
+
+        # Update and merge PR
+        - template: ../templates/GitUpdateMergePR.yml
+
+    - job: iffails
+      displayName: "Capture job log info"
+      dependsOn: 
+      - push
+      - pre
+      - preskip
+      condition: always()
+      variables:
+        preskipstate: $[ dependencies.preskip.outputs['skip.state'] ]
+        prestate: $[ dependencies.pre.outputs['issue.state'] ]
+      steps:
+        - bash: | 
+            echo "Job Status is $(Agent.JobStatus)"
+            echo "Host type is $(System.HostType)"
+            echo "Preskip states is $(preskipstate)"
+            echo "Pre state is $(prestate)"
+            echo "Source Branch is $(System.PullRequest.SourceBranch)"
+            echo "Target Branch is $(System.PullRequest.TargetBranch)"
+            
+          displayName: Reference info
