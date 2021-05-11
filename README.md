@@ -23,6 +23,8 @@ This template repository is for getting started with the AzOps integrated CI/CD 
 * [Troubleshooting](https://github.com/azure/azops/wiki/troubleshooting)
 * [FAQ](https://github.com/azure/azops/wiki/frequently-asked-questions)
 
+> Please be aware the Wiki has been migrated to the [AzOps](https://github.com/azure/azops/wiki/home) repository
+
 ### Issues
 
 If you find any bugs when using the Accelerator, please file an issue on our [AzOps issue](https://github.com/azure/azops/issues) page.
