@@ -9,6 +9,8 @@ This template repository is for getting started with the AzOps integrated CI/CD 
 
 ### Documentation
 
+> Please be aware the Wiki has been migrated to the AzOps repository
+
 * [Home](https://github.com/azure/azops/wiki/home)
 * [Introduction](https://github.com/azure/azops/wiki/introduction)
 * [Prerequisites](https://github.com/azure/azops/wiki/prerequisites)
@@ -22,8 +24,6 @@ This template repository is for getting started with the AzOps integrated CI/CD 
 * [Roadmap](https://github.com/azure/azops/wiki/roadmap)
 * [Troubleshooting](https://github.com/azure/azops/wiki/troubleshooting)
 * [FAQ](https://github.com/azure/azops/wiki/frequently-asked-questions)
-
-> Please be aware the Wiki has been migrated to the [AzOps](https://github.com/azure/azops/wiki/home) repository
 
 ### Issues
 
