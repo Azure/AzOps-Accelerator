@@ -9,16 +9,19 @@ This template repository is for getting started with the AzOps integrated CI/CD 
 
 ### Documentation
 
-* [Home](https://github.com/azure/azops-accelerator/wiki/home)
-* [Introduction](https://github.com/azure/azops-accelerator/wiki/introduction)
-* [Prerequisites](https://github.com/azure/azops-accelerator/wiki/prerequisites)
-* [Getting Started](https://github.com/azure/azops-accelerator/wiki/getting-started)
-* [Templates](https://github.com/azure/azops-accelerator/wiki/templates)
-* [Private Feeds](https://github.com/azure/azops-accelerator/wiki/private-feeds)
-* [Settings](https://github.com/azure/azops-accelerator/wiki/settings)
-* [Migration](https://github.com/azure/azops-accelerator/wiki/migration)
-* [Troubleshooting](https://github.com/azure/azops-accelerator/wiki/troubleshooting)
-* [FAQ](https://github.com/azure/azops-accelerator/wiki/frequently-asked-questions)
+* [Home](https://github.com/azure/azops/wiki/home)
+* [Introduction](https://github.com/azure/azops/wiki/introduction)
+* [Prerequisites](https://github.com/azure/azops/wiki/prerequisites)
+* [Getting Started](https://github.com/azure/azops/wiki/getting-started)
+* [Deployments](https://github.com/azure/azops/wiki/deployments)
+* [Templates](https://github.com/azure/azops/wiki/templates)
+* [Private Feeds](https://github.com/azure/azops/wiki/private-feeds)
+* [Settings](https://github.com/azure/azops/wiki/settings)
+* [Updates](https://github.com/azure/azops/wiki/updates)
+* [Migration](https://github.com/azure/azops/wiki/migration)
+* [Roadmap](https://github.com/azure/azops/wiki/roadmap)
+* [Troubleshooting](https://github.com/azure/azops/wiki/troubleshooting)
+* [FAQ](https://github.com/azure/azops/wiki/frequently-asked-questions)
 
 ### Issues
 
