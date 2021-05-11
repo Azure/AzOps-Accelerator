@@ -9,7 +9,7 @@ This template repository is for getting started with the AzOps integrated CI/CD 
 
 ### Documentation
 
-> Please be aware the Wiki has been migrated to the AzOps repository
+Please be aware the Wiki has been migrated to the AzOps repository
 
 * [Home](https://github.com/azure/azops/wiki/home)
 * [Introduction](https://github.com/azure/azops/wiki/introduction)
