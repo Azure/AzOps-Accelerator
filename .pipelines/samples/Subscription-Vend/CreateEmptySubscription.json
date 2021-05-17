@@ -1,0 +1,167 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "targetManagementGroup": {
+            "type": "string",
+            "allowedValues": [
+                "prod-sandboxes",
+                "canary-sandboxes"
+            ],
+            "metadata": {
+                "details": "Select targeted management group that the subscription will land into"
+            },
+            "defaultValue": "canary-sandboxes"
+        },
+        "subscriptiontype": {
+           "type": "string",
+            "allowedValues": [
+                "Standard",
+                "EaDevTest"
+            ],
+            "metadata": {
+                "description": "Input will determine if the subscription Type. EaDevTest requires a seperate Visual Studio Subscriber licence."
+            },
+            "defaultValue": "Standard"
+        },
+        "subscriptionAliasName": {
+            "type": "string",
+            "minLength" : 3,
+            "metadata": {
+                "description": "Provide alias for the subscription"
+            },
+            "defaultValue":""
+        },
+        "billingAccountId": {
+            "type": "string",
+            "metadata": {
+                "description": "Provide the resourceId for the enrollment account or MCA"
+            },
+            "allowedValues": [
+                "/providers/Microsoft.Billing/billingAccounts/0000000/enrollmentAccounts/000000"
+            ],
+            "defaultValue":"/providers/Microsoft.Billing/billingAccounts/0000000/enrollmentAccounts/000000"
+        }
+    },
+    "variables": {
+        "subscriptionWorkload": "[if(equals(parameters('subscriptiontype'), 'Standard'), 'Production', 'DevTest')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-10-01",
+            "name": "[concat('create-', parameters('subscriptionAliasName'))]",
+            "scope": "[concat('Microsoft.Management/managementGroups/', parameters('targetManagementGroup'))]",
+            "location": "[deployment().location]",
+            "properties": {
+                "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+                "parameters": {
+                    "subAliasName": {
+                        "value": "[parameters('subscriptionAliasName')]"
+                    },
+                    "billingId": {
+                        "value": "[parameters('billingAccountId')]"
+                    },
+                    "workload": {
+                        "value": "[variables('subscriptionWorkload')]"
+                    }
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        // parameters for inner scope
+                        "subAliasName": {
+                            "type": "string"
+                        },
+                        "billingId": {
+                            "type": "string"
+                        },
+                        "workload": {
+                            "type": "string"
+                        }
+                    },
+                    "resources": [
+                        {
+                            "scope": "/", // routing the request to tenant root
+                            "name": "[parameters('subAliasName')]",
+                            "type": "Microsoft.Subscription/aliases",
+                            "apiVersion": "2020-09-01",
+                            "properties": {
+                                "workLoad": "[parameters('workload')]",
+                                "displayName": "[parameters('subAliasName')]",
+                                "billingScope": "[parameters('billingId')]"
+                            }
+                        }
+                    ],
+                    "outputs": {
+                        // Referencing the guid generated for the subscription to be used in subsequent (optional) deployments to this subscription
+                        "subscriptionId": {
+                            "type": "string",
+                            "value": "[reference(parameters('subAliasName')).subscriptionId]"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            // Creating deployment to place the new/existing subscription into the management group
+            "scope": "[concat('Microsoft.Management/managementGroups/', parameters('targetManagementGroup'))]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2019-08-01",
+            "name": "[concat('tag-', parameters('subscriptionAliasName'))]",
+            "location": "[deployment().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', 'create-', parameters('subscriptionAliasName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+                "parameters": {
+                    // Value coming from the previous deployment's output inner scope to be used to target subscription deployments
+                    "targetSubscriptionId": {
+                        "value": "[reference(concat('create-', parameters('subscriptionAliasName'))).outputs.subscriptionId.value]"
+                    },
+                    "mgmtGroupId": {
+                        "value": "[parameters('targetManagementGroup')]"
+                    }
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                         // parameters for inner scope
+                        "targetSubscriptionId": {
+                            "type": "string"
+                        },
+                        "mgmtGroupId": {
+                            "type": "string"
+                        }
+                    },
+                    "resources": [
+                        {
+                            // Place subscription into the management group
+                            "scope": "/",
+                            "type": "Microsoft.Management/managementGroups/subscriptions",
+                            "apiVersion": "2020-10-01",
+                            "name": "[concat(parameters('mgmtGroupId'), '/', parameters('targetSubscriptionId'))]",
+                            "location": "[deployment().location]",
+                            "properties": {}
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "subscriptionIdOuter": {
+            "type": "string",
+            "value": "[reference(concat('create-', parameters('subscriptionAliasName'))).outputs.subscriptionId.value]"
+        }
+    }
+}
