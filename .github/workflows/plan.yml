@@ -1,0 +1,105 @@
+---
+name: "AzOps - Plan"
+
+on:
+
+  #
+  # Pull Request
+  #
+
+  pull_request:
+
+jobs:
+
+  plan:
+
+    #
+    # Plan
+    #
+
+    name: "Plan"
+    runs-on: ubuntu-20.04
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+
+    steps:
+
+      #
+      # Checkout
+      # Checks-out the repository
+      #
+
+      - name: "Checkout"
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      #
+      # Dependencies
+      # Install required runtime modules
+      #
+
+      - name: "Dependencies"
+        run: |
+          . .github/scripts/Install.ps1
+          Install-SourceModule -Repository "ljtill/AzOps" -Branch "dev"
+          $module = Get-Module -Name AzOps -ListAvailable
+          $data = Import-PowerShellDataFile -Path $module.Path
+          foreach ($dependency in $data.RequiredModules) {
+              Install-Module -Name $dependency.ModuleName -RequiredVersion $dependency.RequiredVersion -Force
+          }
+        shell: pwsh
+
+      #
+      # Connect
+      # Authenticate Azure context
+      #
+
+      - name: "Connect"
+        run: |
+          $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
+          Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
+        shell: pwsh
+
+      #
+      # Diff
+      # List index changes
+      #
+
+      - name: "Diff"
+        id: diff
+        run: |
+          echo $(git diff --name-status HEAD^ HEAD)
+          git diff --name-status HEAD^ HEAD > /tmp/diff.txt
+        shell: bash
+
+      #
+      # Plan
+      # Display what-if of any index changes
+      #
+
+      - name: "Plan"
+        run: |
+          Initialize-AzOpsEnvironment
+          Import-PSFConfig -Path settings.json -Schema MetaJson
+          $diff = Get-Content -Path /tmp/diff.txt
+          $module = Get-Module -Name AzOps
+          $module.Invoke({ Invoke-AzOpsChange -ChangeSet $diff -WhatIf })
+          Get-Job | Remove-Job -Force
+        shell: pwsh
+
+      #
+      # Display
+      #
+
+      - name: "Display"
+        run: |
+          ls -al
+          gh pr comment ${{ github.event.pull_request.number }} --body-file OUTPUT.md
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
