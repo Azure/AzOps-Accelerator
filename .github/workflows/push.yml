@@ -4,179 +4,27 @@ name: "AzOps - Push"
 on:
 
   #
-  # Pull Request
-  # Automated workflow trigger when a pull request
-  # is created within the repository.
+  # Push
+  # Automated workflow trigger when a merge
+  # commit enters the main branch.
   #
 
-  pull_request:
-
-env:
-
-  #
-  # Strict Mode
-  # Enable strict mode when pre consistency checking
-  # is required on the repository. When disabled the
-  # pre steps will be skipped.
-  #
-  # Default: false
-  #
-
-  strict_mode: false
-
-  #
-  # Auto Merge
-  # When auto merge is enabled, after the deployment
-  # is completed, the new state will be pushed to the
-  # head branch and the trigger pull request will be
-  # merged directly into the base branch.
-  #
-  # Default: true
-  #
-
-  auto_merge: true
-
-  #
-  # Folder Name
-  # By default we generate the hierachy within the
-  # 'azops' folder within the root of the repository.
-  # If this property is modified, the config value within
-  # the settings.json file - Core.State will also need
-  # to be changed.
-  #
-  # Default: root
-  #
-
-  folder: "root"
-
-  #
-  # Commit Message
-  # During the Pull workflow, the changes are commited to the
-  # temporary branch, the message which is applied within the
-  # Git history can be changed as needed.
-  #
-  # Default: Automated commit
-  #
-
-  commit_message: "Automated commit"
+  push:
+    branches:
+      - main
+    paths:
+      - 'root/**'
 
 jobs:
-
-  pre:
-
-    #
-    # Pre
-    # Before running the resource deployment,
-    # we need to validate the repository state
-    # is up to date and we won't encounter conflicts.
-    #
-
-    name: "Pre"
-    runs-on: ubuntu-20.04
-    outputs:
-      issue: ${{ steps.issue.outputs.state }}
-      skip: ${{ steps.skip.outputs.state }}
-
-    env:
-      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    steps:
-
-      #
-      # Checkout
-      # Checks-out the repository
-      #
-
-      - name: "Checkout"
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.base.ref }}
-
-      #
-      # Dependencies
-      # Install required runtime modules
-      #
-
-      - name: "Dependencies"
-        run: |
-          Install-Module -Name AzOps -Force
-        shell: pwsh
-        if: env.strict_mode == 'true'
-
-      #
-      # Connect
-      # Authenticate Azure context
-      #
-
-      - name: "Connect"
-        run: |
-          $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
-          Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
-        shell: pwsh
-        if: env.strict_mode == 'true'
-
-      #
-      # Initialize
-      # Generate new state data
-      #
-
-      - name: "Initialize"
-        run: |
-          Import-PSFConfig -Path settings.json -Schema MetaJson
-          Initialize-AzOpsRepository -Rebuild
-          Get-Job | Remove-Job -Force
-        shell: pwsh
-        if: env.strict_mode == 'true'
-
-      #
-      # Issue
-      # Write issue and stop workflow
-      #
-
-      - name: "Issue"
-        id: issue
-        run: |
-          DIFF=$(git diff --ignore-space-at-eol --name-status)
-          echo $DIFF
-          if [ -n "$DIFF" ]
-          then
-            echo "::set-output name=state::stop"
-            gh pr comment ${{ github.event.pull_request.number }} --body "Unable to proceed the branch is out of sync with Azure."
-          else
-            echo "::set-output name=state::continue"
-          fi
-        shell: bash
-        if: env.strict_mode == 'true'
-
-      #
-      # Skip
-      #
-
-      - name: "Skip"
-        id: skip
-        run: |
-          echo "::set-output name=state::continue"
-        shell: bash
-        if: env.strict_mode == 'false'
 
   push:
 
     #
     # Push
-    # Before running the resource deployment,
-    # we need to validate the repository state
-    # is up to date and we won't encounter conflicts.
     #
 
     name: "Push"
     runs-on: ubuntu-20.04
-    needs: pre
-    if: needs.pre.outputs.issue == 'continue' || needs.pre.outputs.skip == 'continue'
 
     env:
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
@@ -225,8 +73,8 @@ jobs:
       - name: "Diff"
         id: diff
         run: |
-          echo $(git diff origin/${{ github.event.pull_request.base.ref }} --name-status)
-          git diff origin/${{ github.event.pull_request.base.ref }} --name-status > /tmp/diff.txt
+          echo $(git diff --name-status HEAD^ HEAD)
+          git diff --name-status HEAD^ HEAD > /tmp/diff.txt
         shell: bash
 
       #
@@ -243,153 +91,3 @@ jobs:
           $module.Invoke({ Invoke-AzOpsChange -ChangeSet $diff })
           Get-Job | Remove-Job -Force
         shell: pwsh
-
-  post:
-
-    #
-    # Post
-    # Before running the resource deployment,
-    # we need to validate the repository state
-    # is up to date and we won't encounter conflicts.
-    #
-
-    name: "Post"
-    runs-on: ubuntu-20.04
-    needs: push
-    if: needs.pre.outputs.diff == 'continue' || needs.pre.outputs.skip == 'continue'
-
-    env:
-      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    steps:
-
-      #
-      # Checkout
-      # Checks-out the repository
-      #
-
-      - name: "Checkout"
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      #
-      # Configure
-      # Set global options
-      #
-
-      - name: "Configure"
-        run: |
-          git config user.name github-actions
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-        shell: bash
-
-      #
-      # Switch
-      # Change working branch
-      #
-
-      - name: "Switch"
-        run: |
-          git switch -c ${{ github.head_ref }}
-        shell: bash
-
-      #
-      # Dependencies
-      # Install required runtime modules
-      #
-
-      - name: "Dependencies"
-        run: |
-          Install-Module -Name AzOps -Force
-        shell: pwsh
-
-      #
-      # Connect
-      # Authenticate Azure context
-      #
-
-      - name: "Connect"
-        run: |
-          $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
-          Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
-        shell: pwsh
-
-      #
-      # Initialize
-      # Generate new state data
-      #
-
-      - name: "Initialize"
-        run: |
-          Import-PSFConfig -Path settings.json -Schema MetaJson
-          Initialize-AzOpsRepository -Rebuild
-          Get-Job | Remove-Job -Force
-        shell: pwsh
-
-      #
-      # Status
-      # Check for data changes
-      #
-
-      - name: "Status"
-        id: status
-        run: |
-          STATUS=$(git status --short)
-          echo $STATUS
-          if [ -z "$STATUS" ]
-          then
-            echo "::set-output name=state::stop"
-          else
-            echo "::set-output name=state::continue"
-          fi
-        shell: bash
-
-      #
-      # Add
-      # Add file content to index
-      #
-
-      - name: "Add"
-        run: |
-          git add "./${{ env.folder }}"
-          git status --short
-        shell: bash
-        if: steps.status.outputs.state == 'continue'
-
-      #
-      # Commit
-      # Record changes to the repository
-      #
-
-      - name: "Commit"
-        run: |
-          git commit -m "${{ env.commit_message }}"
-        shell: bash
-        if: steps.status.outputs.state == 'continue'
-
-      #
-      # Push
-      # Update remote refs along with associated objects
-      #
-
-      - name: "Push"
-        run: |
-          git push origin ${{ github.head_ref }}
-        shell: bash
-        if: steps.status.outputs.state == 'continue'
-
-      #
-      # Merge
-      # Automatically merge the Pull Request into base
-      #
-
-      - name: "Merge"
-        run: |
-          gh pr merge ${{ github.event.pull_request.head.ref }} --squash --delete-branch
-        shell: bash
-        if: env.auto_merge == 'true'
