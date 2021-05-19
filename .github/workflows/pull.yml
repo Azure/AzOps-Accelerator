@@ -34,6 +34,16 @@ on:
   schedule:
     - cron: "0 */6 * * *"
 
+  #
+  # Workflow Run
+  #
+
+  workflow_run:
+    workflows: ["AzOps - Push"]
+    branches: [main]
+    types:
+      - completed
+
 env:
 
   #
