@@ -92,7 +92,6 @@ jobs:
 
       - name: "Display"
         run: |
-          ls -al
           gh pr comment ${{ github.event.pull_request.number }} --body-file OUTPUT.md
         shell: bash
         env:
