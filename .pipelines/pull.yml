@@ -26,6 +26,16 @@ schedules:
         - main
     always: true
 
+#
+# Pipelines
+#
+
+resources:
+  pipelines:
+    - pipeline: 'Pull'
+      source: 'AzOps - Push'
+      trigger: true
+
 variables:
 
   #
@@ -82,7 +92,7 @@ variables:
 
   #
   # Pull Request
-  # The generated Pull Request for the Pull workflow can be
+  # The generated Pull Request for the Pull workflow can be
   # modified to help indicate when changes we're merged in the
   # Git history.
   #
@@ -208,7 +218,7 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            git add "./$(folder)"
+            git add ./$(folder)
         condition: contains(variables['state'], 'continue')
 
       #
