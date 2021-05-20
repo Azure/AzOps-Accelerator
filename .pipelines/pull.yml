@@ -28,13 +28,18 @@ schedules:
 
 #
 # Pipelines
+# Triggers this pipeline upon the completion of
+# the Push pipeline.
 #
 
 resources:
   pipelines:
     - pipeline: 'Pull'
       source: 'AzOps - Push'
-      trigger: true
+      trigger:
+        branches:
+          include:
+            - main
 
 variables:
 
@@ -102,9 +107,6 @@ variables:
   - name: pull_request
     value: "Automated State"
 
-pool:
-  vmImage: "ubuntu-20.04"
-
 jobs:
 
   - job: pull
@@ -114,6 +116,9 @@ jobs:
     #
 
     displayName: "Pull"
+    pool:
+      vmImage: "ubuntu-20.04"
+
     steps:
 
       #
@@ -215,11 +220,12 @@ jobs:
 
       - task: Bash@3
         displayName: "Add"
+        condition: contains(variables['state'], 'continue')
         inputs:
           targetType: "inline"
           script: |
             git add ./$(folder)
-        condition: contains(variables['state'], 'continue')
+
 
       #
       # Commit
@@ -228,11 +234,12 @@ jobs:
 
       - task: Bash@3
         displayName: "Commit"
+        condition: contains(variables['state'], 'continue')
         inputs:
           targetType: "inline"
           script: |
             git commit -m "$(commit_message)"
-        condition: contains(variables['state'], 'continue')
+
 
       #
       # Push
@@ -241,11 +248,12 @@ jobs:
 
       - task: Bash@3
         displayName: "Push"
+        condition: contains(variables['state'], 'continue')
         inputs:
           targetType: "inline"
           script: |
             git push origin $(branch) -f
-        condition: contains(variables['state'], 'continue')
+
 
       #
       # Merge
@@ -254,6 +262,7 @@ jobs:
 
       - task: Bash@3
         displayName: "Merge"
+        condition: contains(variables['state'], 'continue')
         inputs:
           targetType: "inline"
           script: |
@@ -264,6 +273,5 @@ jobs:
               --squash true \
               --delete-source-branch true \
               --auto-complete true
-        condition: contains(variables['state'], 'continue')
         env:
           AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
