@@ -5,9 +5,17 @@ on:
 
   #
   # Pull Request
+  # Upon the creation of a new Pull Request
+  # this workflow will execute.
   #
 
   pull_request:
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
 jobs:
 
@@ -19,12 +27,6 @@ jobs:
 
     name: "Plan"
     runs-on: ubuntu-20.04
-
-    env:
-      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
     steps:
 
@@ -44,9 +46,9 @@ jobs:
       #
 
       - name: "Dependencies"
-        run: |
-          Install-Module -Name AzOps -Force
         shell: pwsh
+        run: |
+          Install-Module -Name "AzOps" -Force
 
       #
       # Connect
@@ -54,10 +56,10 @@ jobs:
       #
 
       - name: "Connect"
+        shell: pwsh
         run: |
           $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
           Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
-        shell: pwsh
 
       #
       # Diff
@@ -66,17 +68,17 @@ jobs:
 
       - name: "Diff"
         id: diff
+        shell: bash
         run: |
           echo $(git diff --name-status HEAD^ HEAD)
           git diff --name-status HEAD^ HEAD > /tmp/diff.txt
-        shell: bash
 
       #
       # Plan
-      # Display what-if of any index changes
       #
 
       - name: "Plan"
+        shell: pwsh
         run: |
           Initialize-AzOpsEnvironment
           Import-PSFConfig -Path settings.json -Schema MetaJson
@@ -84,15 +86,14 @@ jobs:
           $module = Get-Module -Name AzOps
           $module.Invoke({ Invoke-AzOpsChange -ChangeSet $diff -WhatIf })
           Get-Job | Remove-Job -Force
-        shell: pwsh
 
       #
-      # Display
+      # Results
       #
 
-      - name: "Display"
+      - name: "Results"
+        shell: bash
         run: |
           gh pr comment ${{ github.event.pull_request.number }} --body-file OUTPUT.md
-        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
