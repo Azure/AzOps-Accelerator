@@ -3,12 +3,35 @@ name: "AzOps - Patch"
 
 #
 # Triggers
+# Automated triggers are disabled for the Patch pipelines
+# This pipeline should be run on a manual basis to avoid
+# any possible conflicts. It's also recommended to manually
+# disable CI triggers with overrides.
 #
 
 trigger: none
 
 variables:
+
+  #
+  # Branch Name
+  #
+  # Default: patch
+  #
+
   branch: 'patch'
+
+  #
+  # Commit Name
+  #
+  # Default: Patch commit
+  #
+
+#
+# Resources
+# Provides the ability to connect to the GitHub repository
+# via a pre-defined Service Connection.
+#
 
 resources:
   repositories:
@@ -17,10 +40,8 @@ resources:
     endpoint: GitHub
     name: Azure/AzOps-Accelerator
 
-pool:
-  vmImage: "ubuntu-20.04"
-
 jobs:
+
   - job: patch
 
     #
@@ -28,6 +49,8 @@ jobs:
     #
 
     displayName: "Patch"
+    pool:
+      vmImage: "ubuntu-20.04"
 
     steps:
 
@@ -50,17 +73,6 @@ jobs:
 
       - checkout: Accelerator
         path: "upstream"
-
-      #
-      # List
-      #
-
-      - task: Bash@3
-        displayName: "List"
-        inputs:
-          targetType: "inline"
-          script: |
-            ls -al
 
       #
       # Configure
