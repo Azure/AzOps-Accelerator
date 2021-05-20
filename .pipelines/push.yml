@@ -17,6 +17,7 @@ trigger:
       - root
 
 variables:
+
   #
   # Credentials
   # This reference is to the Variable Group which needs
@@ -30,10 +31,8 @@ variables:
 
   - group: credentials
 
-pool:
-  vmImage: "ubuntu-20.04"
-
 jobs:
+
   - job: push
 
     #
@@ -44,8 +43,11 @@ jobs:
     #
 
     displayName: "Push"
+    pool:
+      vmImage: ubuntu-20.04
 
     steps:
+
       #
       # Checkout
       # Checks-out the repository
