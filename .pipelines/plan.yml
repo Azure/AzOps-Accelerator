@@ -11,6 +11,7 @@ name: "AzOps - Plan"
 trigger: none
 
 variables:
+
   #
   # Credentials
   # This reference is to the Variable Group which needs
@@ -24,22 +25,20 @@ variables:
 
   - group: credentials
 
-pool:
-  vmImage: "ubuntu-20.04"
-
 jobs:
+
   - job: plan
 
     #
-    # Push
-    # Before running the resource deployment,
-    # we need to validate the repository state
-    # is up to date and we won't encounter conflicts.
+    # Plan
     #
 
     displayName: "Plan"
+    pool:
+      vmImage: "ubuntu-20.04"
 
     steps:
+
       #
       # Checkout
       # Checks-out the repository
@@ -59,7 +58,7 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            Install-Module -Name AzOps -Force
+            Install-Module -Name "AzOps" -Force
 
       #
       # Connect
@@ -89,7 +88,6 @@ jobs:
 
       #
       # Plan
-      # Display the deployment of any index changes
       #
 
       - task: PowerShell@2
@@ -105,11 +103,11 @@ jobs:
             Get-Job | Remove-Job -Force
 
       #
-      # Display
+      # Results
       #
 
       - task: PowerShell@2
-        displayName: 'Display'
+        displayName: 'Results'
         inputs:
           targetType: "inline"
           script: |
