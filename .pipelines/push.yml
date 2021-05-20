@@ -8,10 +8,15 @@ name: "AzOps - Push"
 # disable CI triggers with overrides.
 #
 
-trigger: none
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - root
 
 variables:
-
   #
   # Credentials
   # This reference is to the Variable Group which needs
@@ -25,195 +30,10 @@ variables:
 
   - group: credentials
 
-  #
-  # Strict Mode
-  # Enable strict mode when pre consistency checking
-  # is required on the repository. When disabled the
-  # pre steps will be skipped.
-  #
-  # Default: false
-  #
-
-  - name: strict_mode
-    value: false
-
-  #
-  # Auto Merge
-  # When auto merge is enabled, after the deployment
-  # is completed, the new state will be pushed to the
-  # head branch and the proposed pull request will be
-  # merged directly into the base branch.
-  #
-  # Default: true
-  #
-
-  - name: auto_merge
-    value: true
-
-  #
-  # Folder Name
-  # By default we generate the hierachy within the
-  # 'azops' folder within the root of the repository.
-  # If this property is modified, the config value within
-  # the settings.json file - Core.State will also need
-  # to be changed.
-  #
-  # Default: root
-  #
-
-  - name: folder
-    value: "root"
-
-  #
-  # Branch Name
-  # As part of the Pull workflow we check a temporary branch
-  # this branch was previously know as system, this value can
-  # be changed if this name is already reserved for other systems
-  # within the repository. Within the Push workflow we use this
-  # value to skip the Push if it's been trigger by the Pull commit.
-  #
-  # Default: automated
-  #
-
-  - name: branch
-    value: "refs/heads/automated"
-
-  #
-  # Commit Message
-  # During the Pull workflow, the changes are commited to the
-  # temporary branch, the message which is applied within the
-  # Git history can be changed as needed.
-  #
-  # Default: Automated commit
-  #
-
-  - name: commit_message
-    value: "Automated commit"
-
 pool:
   vmImage: "ubuntu-20.04"
 
 jobs:
-
-  - job: pre
-
-    #
-    # Pre
-    # Before running the resource deployment,
-    # we need to validate the repository state
-    # is up to date and we won't encounter conflicts.
-    #
-
-    displayName: "Pre"
-    condition: and(eq(variables['Build.Reason'], 'PullRequest'), ne(variables['System.PullRequest.SourceBranch'], variables['branch']))
-
-    steps:
-
-      #
-      # Checkout
-      # Checks-out the repository
-      #
-
-      - checkout: self
-        fetchDepth: 0
-        persistCredentials: true
-
-      #
-      # Switch
-      # Change working branch
-      #
-
-      - task: PowerShell@2
-        displayName: "Switch"
-        inputs:
-          targetType: "inline"
-          script: |
-            branchName=$(echo $(System.PullRequest.TargetBranch) | sed 's:refs/heads/::')
-            git switch -c $branchName
-        condition: contains(variables['strict_mode'], 'true')
-
-      #
-      # Dependencies
-      # Install required runtime modules
-      #
-
-      - task: PowerShell@2
-        displayName: "Dependencies"
-        inputs:
-          targetType: "inline"
-          script: |
-            Install-Module -Name AzOps -Force
-        condition: contains(variables['strict_mode'], 'true')
-
-      #
-      # Connect
-      # Authenticate Azure context
-      #
-
-      - task: PowerShell@2
-        displayName: "Connect"
-        inputs:
-          targetType: "inline"
-          script: |
-            $credential = New-Object PSCredential -ArgumentList $(ARM_CLIENT_ID), (ConvertTo-SecureString -String $(ARM_CLIENT_SECRET) -AsPlainText -Force)
-            Connect-AzAccount -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
-        condition: contains(variables['strict_mode'], 'true')
-
-      #
-      # Initialize
-      # Generate new state data
-      #
-
-      - task: PowerShell@2
-        displayName: "Initialize"
-        inputs:
-          targetType: "inline"
-          script: |
-            Import-PSFConfig -Path settings.json -Schema MetaJson
-            Initialize-AzOpsRepository -Rebuild
-            Get-Job | Remove-Job -Force
-        condition: contains(variables['strict_mode'], 'true')
-
-      #
-      # Issue
-      # Write issue and stop workflow
-      #
-
-      - task: Bash@3
-        displayName: "Issue"
-        name: issue
-        inputs:
-          targetType: "inline"
-          script: |
-            DIFF=$(git diff --ignore-space-at-eol --name-status)
-            echo $DIFF
-            if [ -n "$DIFF" ]
-            then
-              echo "##vso[task.setvariable variable=state;isOutput=true]stop"
-              URL="$(System.CollectionUri)/$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.Name)/pullRequests/$(System.PullRequest.PullRequestId)/threads?api-version=6.0"
-              curl --request POST \
-              --header "Authorization: Bearer $(System.AccessToken)" \
-              --header "Content-Type: application/json" \
-              --data '{ "comments": [ { "parentCommentId": 0, "content": "Unable to proceed the branch is out of sync with Azure.", "commentType": 1 } ], "status": 1 }' \
-              --url "$( echo "$URL" | sed 's/ /%20/g' )"
-            else
-              echo "##vso[task.setvariable variable=state;isOutput=true]continue"
-            fi
-        condition: contains(variables['strict_mode'], 'true')
-
-      #
-      # Skip
-      #
-
-      - task: Bash@3
-        displayName: "Skip"
-        name: skip
-        inputs:
-          targetType: "inline"
-          script: |
-            echo "##vso[task.setvariable variable=state;isOutput=true]continue"
-        condition: contains(variables['strict_mode'], 'false')
-
   - job: push
 
     #
@@ -224,11 +44,8 @@ jobs:
     #
 
     displayName: "Push"
-    dependsOn: pre
-    condition: or(contains(dependencies.pre.outputs['issue.state'], 'continue'), contains(dependencies.pre.outputs['skip.state'], 'continue'))
 
     steps:
-
       #
       # Checkout
       # Checks-out the repository
@@ -273,8 +90,8 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            branchName=$(echo $(System.PullRequest.TargetBranch) | sed 's:refs/heads/::')
-            git diff origin/$branchName --name-status > /tmp/diff.txt
+            echo $(git diff --name-status HEAD^ HEAD)
+            git diff --name-status HEAD^ HEAD > /tmp/diff.txt
 
       #
       # Deploy
@@ -292,171 +109,3 @@ jobs:
             $module = Get-Module -Name AzOps
             $module.Invoke({ Invoke-AzOpsChange -ChangeSet $diff })
             Get-Job | Remove-Job -Force
-
-  - job: post
-
-    #
-    # Post
-    # Before running the resource deployment,
-    # we need to validate the repository state
-    # is up to date and we won't encounter conflicts.
-    #
-
-    displayName: "Post"
-    dependsOn: push
-    condition: or(contains(dependencies.pre.outputs['issue.state'], 'continue'), contains(dependencies.pre.outputs['skip.state'], 'continue'))
-
-    steps:
-
-      #
-      # Checkout
-      # Checks-out the repository
-      #
-
-      - checkout: self
-        fetchDepth: 0
-        persistCredentials: true
-
-      #
-      # Configure
-      # Set global options
-      #
-
-      - task: Bash@3
-        displayName: "Configure"
-        inputs:
-          targetType: "inline"
-          script: |
-            git config user.name "Azure DevOps"
-            git config user.email "azuredevops@microsoft.com"
-
-      #
-      # Switch
-      # Change working branch
-      #
-
-      - task: Bash@3
-        displayName: "Switch"
-        inputs:
-          targetType: "inline"
-          script: |
-            branchName=$(echo $(System.PullRequest.SourceBranch) | sed 's:refs/heads/::')
-            git switch -c $branchName
-
-      #
-      # Dependencies
-      # Install required runtime modules
-      #
-
-      - task: PowerShell@2
-        displayName: "Dependencies"
-        inputs:
-          targetType: "inline"
-          script: |
-            Install-Module -Name AzOps -Force
-
-      #
-      # Connect
-      # Authenticate Azure context
-      #
-
-      - task: PowerShell@2
-        displayName: "Connect"
-        inputs:
-          targetType: "inline"
-          script: |
-            $credential = New-Object PSCredential -ArgumentList $(ARM_CLIENT_ID), (ConvertTo-SecureString -String $(ARM_CLIENT_SECRET) -AsPlainText -Force)
-            Connect-AzAccount -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
-
-      #
-      # Initialize
-      # Generate new state data
-      #
-
-      - task: PowerShell@2
-        displayName: "Initialize"
-        inputs:
-          targetType: "inline"
-          script: |
-            Import-PSFConfig -Path settings.json -Schema MetaJson
-            Initialize-AzOpsRepository -Rebuild
-            Get-Job | Remove-Job -Force
-
-      #
-      # Status
-      # Check for data changes
-      #
-
-      - task: Bash@3
-        displayName: "Status"
-        inputs:
-          targetType: "inline"
-          script: |
-            STATUS=$(git status --short)
-            echo $STATUS
-            if [ -z "$STATUS" ]
-            then
-              echo "##vso[task.setvariable variable=state]stop"
-            else
-              echo "##vso[task.setvariable variable=state]continue"
-            fi
-
-      #
-      # Add
-      # Add file content to index
-      #
-
-      - task: Bash@3
-        displayName: "Add"
-        inputs:
-          targetType: "inline"
-          script: |
-            git add "./$(folder)"
-            git status --short
-        condition: contains(variables['state'], 'continue')
-
-      #
-      # Commit
-      # Record changes to the repository
-      #
-
-      - task: Bash@3
-        displayName: "Commit"
-        inputs:
-          targetType: "inline"
-          script: |
-            git commit -m "$(commit_message)" -m "[skip ci]"
-        condition: contains(variables['state'], 'continue')
-
-      #
-      # Push
-      # Update remote refs along with associated objects
-      #
-
-      - task: Bash@3
-        displayName: "Push"
-        inputs:
-          targetType: "inline"
-          script: |
-            branchName=$(echo $(System.PullRequest.SourceBranch) | sed 's:refs/heads/::')
-            git push origin $branchName  -f
-        condition: contains(variables['state'], 'continue')
-
-      #
-      # Merge
-      # Automatically merge the Pull Request into base
-      #
-
-      - task: Bash@3
-        displayName: "Merge"
-        inputs:
-          targetType: "inline"
-          script: |
-            az repos pr update \
-              --id $(System.PullRequest.PullRequestId) \
-              --auto-complete true \
-              --squash true \
-              --delete-source-branch true
-        env:
-          AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-        condition: contains(variables['auto_merge'], 'true')
