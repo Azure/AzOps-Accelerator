@@ -1,5 +1,5 @@
 ---
-name: "AzOps - Plan"
+name: "AzOps - Validate"
 
 on:
 
@@ -12,6 +12,11 @@ on:
   pull_request:
 
 env:
+
+  #
+  # Credentials
+  #
+
   ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
   ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
@@ -19,13 +24,13 @@ env:
 
 jobs:
 
-  plan:
+  validate:
 
     #
-    # Plan
+    # Validate
     #
 
-    name: "Plan"
+    name: "Validate"
     runs-on: ubuntu-20.04
 
     steps:
@@ -46,9 +51,15 @@ jobs:
       #
 
       - name: "Dependencies"
-        shell: pwsh
         run: |
-          Install-Module -Name "AzOps" -Force
+          . .github/scripts/Install.ps1
+          Install-SourceModule -Repository "ljtill/AzOps" -Branch "dev"
+          $module = Get-Module -Name AzOps -ListAvailable
+          $data = Import-PowerShellDataFile -Path $module.Path
+          foreach ($dependency in $data.RequiredModules) {
+              Install-Module -Name $dependency.ModuleName -RequiredVersion $dependency.RequiredVersion -Force
+          }
+        shell: pwsh
 
       #
       # Connect
@@ -74,10 +85,10 @@ jobs:
           git diff --name-status HEAD^ HEAD > /tmp/diff.txt
 
       #
-      # Plan
+      # Validate
       #
 
-      - name: "Plan"
+      - name: "Validate"
         shell: pwsh
         run: |
           Initialize-AzOpsEnvironment
@@ -94,6 +105,6 @@ jobs:
       - name: "Results"
         shell: bash
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body-file OUTPUT.md
+          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/OUTPUT.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
