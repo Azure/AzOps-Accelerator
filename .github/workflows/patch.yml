@@ -1,11 +1,11 @@
 ---
-name: "AzOps - Patch"
+name: "AzOps - Update"
 
 on:
 
   #
   # Workflow Dispatch
-  # Manually invoke the Patch action via the GitHub
+  # Manually invoke the Update action via the GitHub
   # UI on-demand. This is to avoid any potential conflicts
   # with user changes to the workflows.
   #
@@ -17,20 +17,20 @@ env:
   #
   # Branch Name
   #
-  # Default: patch
+  # Default: update
   #
 
-  branch: "patch"
+  branch: "update"
 
 jobs:
 
-  patch:
+  update:
 
     #
-    # Patch
+    # Update
     #
 
-    name: "Patch"
+    name: "Update"
     runs-on: ubuntu-20.04
 
     steps:
@@ -100,7 +100,7 @@ jobs:
         then
           git checkout -b ${{ env.branch }}
           git add .github/
-          git commit -m 'Patch commit'
+          git commit -m 'Update commit'
           git push origin ${{ env.branch }} -f
           echo "::set-output name=state::continue"
         fi
