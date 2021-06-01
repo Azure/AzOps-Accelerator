@@ -101,6 +101,7 @@ jobs:
           targetType: "inline"
           workingDirectory: ".."
           script: |
+            test -f ./origin/.pipelines/patch.yml && rm -f ./origin/.pipelines/patch.yml
             cp -R ./upstream/.pipelines/* ./origin/.pipelines/
 
       #
