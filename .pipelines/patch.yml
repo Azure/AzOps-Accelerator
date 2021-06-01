@@ -1,9 +1,9 @@
 ---
-name: "AzOps - Patch"
+name: "AzOps - Update"
 
 #
 # Triggers
-# Automated triggers are disabled for the Patch pipelines
+# Automated triggers are disabled for the Update pipelines
 # This pipeline should be run on a manual basis to avoid
 # any possible conflicts. It's also recommended to manually
 # disable CI triggers with overrides.
@@ -16,16 +16,18 @@ variables:
   #
   # Branch Name
   #
-  # Default: patch
+  # Default: update
   #
 
-  branch: 'patch'
+  branch: 'update'
 
   #
   # Commit Name
   #
-  # Default: Patch commit
+  # Default: Update commit
   #
+
+  commit: 'Update commit'
 
 #
 # Resources
@@ -42,13 +44,13 @@ resources:
 
 jobs:
 
-  - job: patch
+  - job: update
 
     #
-    # Patch
+    # Update
     #
 
-    displayName: "Patch"
+    displayName: "Update"
     pool:
       vmImage: "ubuntu-20.04"
 
@@ -118,7 +120,7 @@ jobs:
             then
               git checkout -b $(branch)
               git add .pipelines/
-              git commit -m 'Patch commit'
+              git commit -m $(commit)
               git push origin $(branch) -f
               echo "##vso[task.setvariable variable=state]continue"
             fi
