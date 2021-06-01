@@ -118,7 +118,7 @@ jobs:
                 -Headers @{ "Authorization" = "Bearer $(System.AccessToken)"; "Content-Type" = "application/json" } `
                 -Body (@{
                   "comments" = @(
-                      @{ "parentCommentId" = 0; "content" = "$(Get-Content -Path ./OUTPUT.md -Raw)"; "commentType" = 1 }
+                      @{ "parentCommentId" = 0; "content" = "$(Get-Content -Path /tmp/OUTPUT.md -Raw)"; "commentType" = 1 }
                   )
                   "status"  = 1
                 } | ConvertTo-Json) `
