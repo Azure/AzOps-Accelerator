@@ -82,6 +82,7 @@ jobs:
     - name: "Copy"
       shell: bash
       run: |
+        test -f ./origin/.github/workflows/patch.yml && rm -f ./origin/.github/workflows/patch.yml
         cp ./upstream/.github/workflows/* ./origin/.github/workflows/
 
     #
