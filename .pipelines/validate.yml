@@ -1,5 +1,5 @@
 ---
-name: "AzOps - Plan"
+name: "AzOps - Validate"
 
 #
 # Triggers
@@ -27,13 +27,13 @@ variables:
 
 jobs:
 
-  - job: plan
+  - job: validate
 
     #
-    # Plan
+    # Validate
     #
 
-    displayName: "Plan"
+    displayName: "Validate"
     pool:
       vmImage: "ubuntu-20.04"
 
@@ -87,11 +87,11 @@ jobs:
             git diff --name-status HEAD^ HEAD > /tmp/diff.txt
 
       #
-      # Plan
+      # Validate
       #
 
       - task: PowerShell@2
-        displayName: "Plan"
+        displayName: "Validate"
         inputs:
           targetType: "inline"
           script: |
