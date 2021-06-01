@@ -34,7 +34,29 @@ on:
   schedule:
     - cron: "0 */6 * * *"
 
+  #
+  # Workflow Run
+  # Triggers this workflow upon the completion of
+  # the Push action.
+  #
+
+  workflow_run:
+    workflows: ["AzOps - Push"]
+    branches: [main]
+    types:
+      - completed
+
 env:
+
+  #
+  # Credentials
+  #
+
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   #
   # Folder Name
@@ -94,13 +116,6 @@ jobs:
     name: "Pull"
     runs-on: ubuntu-20.04
 
-    env:
-      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     steps:
 
       #
@@ -119,10 +134,10 @@ jobs:
       #
 
       - name: "Configure"
+        shell: bash
         run: |
           git config user.name github-actions
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-        shell: bash
 
       #
       # Checkout
@@ -130,9 +145,9 @@ jobs:
       #
 
       - name: "Checkout"
+        shell: bash
         run: |
           git checkout -b ${{ env.branch }}
-        shell: bash
 
       #
       # Dependencies
@@ -140,9 +155,9 @@ jobs:
       #
 
       - name: "Dependencies"
-        run: |
-          Install-Module -Name AzOps -Force
         shell: pwsh
+        run: |
+          Install-Module -Name "AzOps" -Force
 
       #
       # Connect
@@ -150,10 +165,10 @@ jobs:
       #
 
       - name: "Connect"
+        shell: pwsh
         run: |
           $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
           Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
-        shell: pwsh
 
       #
       # Initialize
@@ -161,6 +176,7 @@ jobs:
       #
 
       - name: "Initialize"
+        shell: pwsh
         run: |
           Import-PSFConfig -Path settings.json -Schema MetaJson
           if ($env:ACTION -eq "Enterprise-Scale Deployment") {
@@ -168,7 +184,6 @@ jobs:
           }
           Initialize-AzOpsRepository -Rebuild
           Get-Job | Remove-Job -Force
-        shell: pwsh
         env:
           ACTION: ${{ github.event.action }}
 
@@ -179,6 +194,7 @@ jobs:
 
       - name: "Status"
         id: status
+        shell: bash
         run: |
           STATUS=$(git status --short)
           echo $STATUS
@@ -188,7 +204,6 @@ jobs:
           else
             echo "::set-output name=state::continue"
           fi
-        shell: bash
 
       #
       # Add
@@ -207,10 +222,11 @@ jobs:
       #
 
       - name: "Commit"
+        if: steps.status.outputs.state == 'continue'
+        shell: bash
         run: |
           git commit -m "${{ env.commit_message }}"
-        shell: bash
-        if: steps.status.outputs.state == 'continue'
+
 
       #
       # Push
@@ -218,10 +234,10 @@ jobs:
       #
 
       - name: "Push"
+        if: steps.status.outputs.state == 'continue'
+        shell: bash
         run: |
           git push origin ${{ env.branch }} -f
-        shell: bash
-        if: steps.status.outputs.state == 'continue'
 
       #
       # Merge
@@ -229,8 +245,8 @@ jobs:
       #
 
       - name: "Merge"
+        if: steps.status.outputs.state == 'continue'
+        shell: bash
         run: |
           gh pr create --title "${{ env.pull_request }}" --body "-" --base ${{ github.ref }} --head ${{ env.branch }}
           gh pr merge "${{ env.branch }}" --squash --delete-branch
-        shell: bash
-        if: steps.status.outputs.state == 'continue'
