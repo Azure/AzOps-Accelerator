@@ -57,7 +57,7 @@ jobs:
       - name: "Dependencies"
         shell: pwsh
         run: |
-          Install-Module -Name AzOps -Force
+          Install-Module -Name "AzOps" -Force
 
       #
       # Connect
