@@ -1,5 +1,5 @@
 ---
-name: "AzOps - Push"
+name: "AzOps - Validate"
 
 #
 # Triggers
@@ -8,13 +8,7 @@ name: "AzOps - Push"
 # disable CI triggers with overrides.
 #
 
-trigger:
-  branches:
-    include:
-      - main
-  paths:
-    include:
-      - root
+trigger: none
 
 variables:
 
@@ -33,18 +27,15 @@ variables:
 
 jobs:
 
-  - job: push
+  - job: validate
 
     #
-    # Push
-    # Before running the resource deployment,
-    # we need to validate the repository state
-    # is up to date and we won't encounter conflicts.
+    # Validate
     #
 
-    displayName: "Push"
+    displayName: "Validate"
     pool:
-      vmImage: ubuntu-20.04
+      vmImage: "ubuntu-20.04"
 
     steps:
 
@@ -67,7 +58,7 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            Install-Module -Name AzOps -Force
+            Install-Module -Name "AzOps" -Force
 
       #
       # Connect
@@ -96,12 +87,11 @@ jobs:
             git diff --name-status HEAD^ HEAD > /tmp/diff.txt
 
       #
-      # Deploy
-      # Initial deployment of any index changes
+      # Validate
       #
 
       - task: PowerShell@2
-        displayName: "Deploy"
+        displayName: "Validate"
         inputs:
           targetType: "inline"
           script: |
@@ -109,5 +99,28 @@ jobs:
             Initialize-AzOpsEnvironment
             $diff = Get-Content -Path /tmp/diff.txt
             $module = Get-Module -Name AzOps
-            $module.Invoke({ Invoke-AzOpsChange -ChangeSet $diff })
+            $module.Invoke({ Invoke-AzOpsChange -ChangeSet $diff -whatIf })
             Get-Job | Remove-Job -Force
+
+      #
+      # Results
+      #
+
+      - task: PowerShell@2
+        displayName: 'Results'
+        inputs:
+          targetType: "inline"
+          script: |
+            if (Test-Path "./OUTPUT.md") {
+              $uri = "$(System.CollectionUri)/$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.Name)/pullRequests/$(System.PullRequest.PullRequestId)/threads?api-version=6.0"
+              Invoke-RestMethod `
+                -Method Post `
+                -Headers @{ "Authorization" = "Bearer $(System.AccessToken)"; "Content-Type" = "application/json" } `
+                -Body (@{
+                  "comments" = @(
+                      @{ "parentCommentId" = 0; "content" = "$(Get-Content -Path /tmp/OUTPUT.md -Raw)"; "commentType" = 1 }
+                  )
+                  "status"  = 1
+                } | ConvertTo-Json) `
+                -Uri $uri
+            }

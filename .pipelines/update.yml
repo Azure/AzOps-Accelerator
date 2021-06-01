@@ -1,0 +1,147 @@
+---
+name: "AzOps - Update"
+
+#
+# Triggers
+# Automated triggers are disabled for the Update pipelines
+# This pipeline should be run on a manual basis to avoid
+# any possible conflicts. It's also recommended to manually
+# disable CI triggers with overrides.
+#
+
+trigger: none
+
+variables:
+
+  #
+  # Branch Name
+  #
+  # Default: update
+  #
+
+  branch: 'update'
+
+  #
+  # Commit Name
+  #
+  # Default: Update commit
+  #
+
+  commit: 'Update commit'
+
+#
+# Resources
+# Provides the ability to connect to the GitHub repository
+# via a pre-defined Service Connection.
+#
+
+resources:
+  repositories:
+  - repository: Accelerator
+    type: github
+    endpoint: GitHub
+    name: Azure/AzOps-Accelerator
+
+jobs:
+
+  - job: update
+
+    #
+    # Update
+    #
+
+    displayName: "Update"
+    pool:
+      vmImage: "ubuntu-20.04"
+
+    steps:
+
+      #
+      # Checkout
+      # Checks-out the repository
+      # Repo: origin
+      #
+
+      - checkout: self
+        fetchDepth: 0
+        persistCredentials: true
+        path: "origin"
+
+      #
+      # Checkout
+      # Checks-out the repository
+      # Repo: upstream
+      #
+
+      - checkout: Accelerator
+        path: "upstream"
+
+      #
+      # Configure
+      # Set global options
+      #
+
+      - task: Bash@3
+        displayName: "Configure"
+        inputs:
+          targetType: "inline"
+          workingDirectory: "../origin"
+          script: |
+            git config user.name "Azure DevOps"
+            git config user.email "azuredevops@microsoft.com"
+
+      #
+      # Copy
+      # Update the workflow files
+      #
+
+      - task: Bash@3
+        displayName: "Copy"
+        inputs:
+          targetType: "inline"
+          workingDirectory: ".."
+          script: |
+            test -f ./origin/.pipelines/patch.yml && rm -f ./origin/.pipelines/patch.yml
+            cp -R ./upstream/.pipelines/* ./origin/.pipelines/
+
+      #
+      # Commit
+      # Record changes to the repository
+      #
+
+      - task: Bash@3
+        displayName: "Commit"
+        inputs:
+          targetType: "inline"
+          workingDirectory: "../origin"
+          script: |
+            DIFF=$(git diff --name-only)
+            echo $DIFF
+            if [ -n "$DIFF" ]
+            then
+              git checkout -b $(branch)
+              git add .pipelines/
+              git commit -m $(commit)
+              git push origin $(branch) -f
+              echo "##vso[task.setvariable variable=state]continue"
+            fi
+
+      #
+      # Create
+      # Open new Pull Request for proposed changes
+      #
+
+      - task: Bash@3
+        displayName: "Create"
+        condition: contains(variables['state'], 'continue')
+        inputs:
+          targetType: "inline"
+          workingDirectory: "../origin"
+          script: |
+            az repos pr create \
+              --title "Azure Pipelines" \
+              --description "New pipeline version available from the upstream repository." \
+              --source-branch "$(branch)" \
+              --target-branch "main"
+        env:
+          AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
