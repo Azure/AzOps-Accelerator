@@ -2,28 +2,25 @@
 
 This template repository is for getting started with the AzOps integrated CI/CD solution.
 
-### Samples
-
-* [GitHub Actions](https://github.com/Azure/AzOps-Accelerator/tree/main/.github/samples)
-* [Azure Pipelines](https://github.com/Azure/AzOps-Accelerator/tree/main/.pipelines/samples)
-
 ### Documentation
 
 Please be aware the Wiki has been migrated to the AzOps repository.
 
-* [Home](https://github.com/azure/azops/wiki/home)
 * [Introduction](https://github.com/azure/azops/wiki/introduction)
 * [Prerequisites](https://github.com/azure/azops/wiki/prerequisites)
-* [Getting Started](https://github.com/azure/azops/wiki/getting-started)
-* [Deployments](https://github.com/azure/azops/wiki/deployments)
-* [Templates](https://github.com/azure/azops/wiki/templates)
-* [Private Feeds](https://github.com/azure/azops/wiki/private-feeds)
+* [Services](https://github.com/azure/azops/wiki/services)
+* [Steps](https://github.com/azure/azops/wiki/steps)
 * [Settings](https://github.com/azure/azops/wiki/settings)
 * [Updates](https://github.com/azure/azops/wiki/updates)
 * [Migration](https://github.com/azure/azops/wiki/migration)
 * [Roadmap](https://github.com/azure/azops/wiki/roadmap)
 * [Troubleshooting](https://github.com/azure/azops/wiki/troubleshooting)
 * [FAQ](https://github.com/azure/azops/wiki/frequently-asked-questions)
+
+### Samples
+
+* [GitHub Actions](https://github.com/Azure/AzOps-Accelerator/tree/main/.github/)
+* [Azure Pipelines](https://github.com/Azure/AzOps-Accelerator/tree/main/.pipelines/)
 
 ### Issues
 
