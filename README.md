@@ -11,13 +11,15 @@ This template repository is for getting started with the AzOps integrated CI/CD 
 
 Please be aware the Wiki has been migrated to the AzOps repository.
 
-* [Home](https://github.com/azure/azops/wiki/home)
 * [Introduction](https://github.com/azure/azops/wiki/introduction)
 * [Prerequisites](https://github.com/azure/azops/wiki/prerequisites)
-* [Getting Started](https://github.com/azure/azops/wiki/getting-started)
-* [Deployments](https://github.com/azure/azops/wiki/deployments)
-* [Templates](https://github.com/azure/azops/wiki/templates)
-* [Private Feeds](https://github.com/azure/azops/wiki/private-feeds)
+* [Quickstarts](https://github.com/azure/azops/wiki/quickstart)
+  * [GitHub Actions](https://github.com/azure/azops/wiki/github-actions)
+  * [Azure Pipelines](https://github.com/azure/azops/wiki/azure-pipelines)
+* [Steps](https://github.com/azure/azops/wiki/steps)
+  * [Validate](https://github.com/azure/azops/wiki/steps#validate)
+  * [Push](https://github.com/azure/azops/wiki/steps#push)
+  * [Pull](https://github.com/azure/azops/wiki/steps#pull)
 * [Settings](https://github.com/azure/azops/wiki/settings)
 * [Updates](https://github.com/azure/azops/wiki/updates)
 * [Migration](https://github.com/azure/azops/wiki/migration)
