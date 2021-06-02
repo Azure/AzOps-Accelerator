@@ -2,11 +2,6 @@
 
 This template repository is for getting started with the AzOps integrated CI/CD solution.
 
-### Samples
-
-* [GitHub Actions](https://github.com/Azure/AzOps-Accelerator/tree/main/.github/samples)
-* [Azure Pipelines](https://github.com/Azure/AzOps-Accelerator/tree/main/.pipelines/samples)
-
 ### Documentation
 
 Please be aware the Wiki has been migrated to the AzOps repository.
@@ -26,6 +21,11 @@ Please be aware the Wiki has been migrated to the AzOps repository.
 * [Roadmap](https://github.com/azure/azops/wiki/roadmap)
 * [Troubleshooting](https://github.com/azure/azops/wiki/troubleshooting)
 * [FAQ](https://github.com/azure/azops/wiki/frequently-asked-questions)
+
+### Samples
+
+* [GitHub Actions](https://github.com/Azure/AzOps-Accelerator/tree/main/.github/samples)
+* [Azure Pipelines](https://github.com/Azure/AzOps-Accelerator/tree/main/.pipelines/samples)
 
 ### Issues
 
