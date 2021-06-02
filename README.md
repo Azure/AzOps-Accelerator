@@ -8,7 +8,7 @@ Please be aware the Wiki has been migrated to the AzOps repository.
 
 * [Introduction](https://github.com/azure/azops/wiki/introduction)
 * [Prerequisites](https://github.com/azure/azops/wiki/prerequisites)
-* [Configuration](https://github.com/azure/azops/wiki/quickstart)
+* [Services](https://github.com/azure/azops/wiki/services)
 * [Steps](https://github.com/azure/azops/wiki/steps)
 * [Settings](https://github.com/azure/azops/wiki/settings)
 * [Updates](https://github.com/azure/azops/wiki/updates)
