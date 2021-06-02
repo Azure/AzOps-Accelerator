@@ -9,13 +9,6 @@ Please be aware the Wiki has been migrated to the AzOps repository.
 * [Introduction](https://github.com/azure/azops/wiki/introduction)
 * [Prerequisites](https://github.com/azure/azops/wiki/prerequisites)
 * [Configuration](https://github.com/azure/azops/wiki/quickstart)
-  * [GitHub Actions](https://github.com/azure/azops/wiki/github-actions)
-  * [Azure Pipelines](https://github.com/azure/azops/wiki/azure-pipelines)
-* [Deployments](https://github.com/azure/azops/wiki/deployments)
-  * [Subscriptions](https://github.com/azure/azops/wiki/subscriptions)
-* [Feeds](https://github.com/azure/azops/wiki/feeds)
-  * [Azure Artifacts](https://github.com/azure/azops/wiki/azure-artifacts)
-  * [GitHub Packages](https://github.com/azure/azops/wiki/github-packages)
 * [Steps](https://github.com/azure/azops/wiki/steps)
 * [Settings](https://github.com/azure/azops/wiki/settings)
 * [Updates](https://github.com/azure/azops/wiki/updates)
@@ -26,8 +19,8 @@ Please be aware the Wiki has been migrated to the AzOps repository.
 
 ### Samples
 
-* [GitHub Actions](https://github.com/Azure/AzOps-Accelerator/tree/main/.github/samples)
-* [Azure Pipelines](https://github.com/Azure/AzOps-Accelerator/tree/main/.pipelines/samples)
+* [GitHub Actions](https://github.com/Azure/AzOps-Accelerator/tree/main/.github/)
+* [Azure Pipelines](https://github.com/Azure/AzOps-Accelerator/tree/main/.pipelines/)
 
 ### Issues
 
