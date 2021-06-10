@@ -99,7 +99,7 @@ jobs:
             Initialize-AzOpsEnvironment
             $diff = Get-Content -Path /tmp/diff.txt
             $module = Get-Module -Name AzOps
-            $module.Invoke({ Invoke-AzOpsChange -ChangeSet $diff -whatIf })
+            $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -whatIf })
             Get-Job | Remove-Job -Force
 
       #
