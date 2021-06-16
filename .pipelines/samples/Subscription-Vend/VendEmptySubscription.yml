@@ -1,0 +1,178 @@
+# Creates a PR for an empty Azure Subscription against a specific management group
+
+# Best run from the AzOps Pipeline UI
+# or integrated with your own process, using the DEVOPS AZ CLI to call the pipeline and pass the variables;  
+# az login --use-device-code
+# az pipelines run --org https://dev.azure.com/ORG -p PROJECT --name VendEmptySubscription --variables ManagementGroup=canary-sandboxes SubscriptionName=My-New-Sub Environment=canary
+
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  - name: ArmTemplateRepoPath
+    value: "$(System.DefaultWorkingDirectory)/armlib/CreateEmptySubscription.json"
+
+  - name: workingbranch
+    value: "SUB-$(SubscriptionName)"
+
+  - name: targetbranch
+    value: "main"
+  
+  - name: pull_request
+    value: "New subscription request $(SubscriptionName)"
+  
+  - name: commit_message
+    value: "Adding new subscription template"
+
+jobs:
+- job: CreateSubscription
+  steps:
+  - checkout: self
+    persistCredentials: true
+
+  - script: |
+      echo "##vso[task.setvariable variable=Environment]Canary"
+      echo "##vso[task.setvariable variable=ManagementGroup]Canary-Sandboxes"
+      echo "##vso[task.setvariable variable=SubscriptionName]Testing-SubName"
+    displayName: Set variables for testing
+    condition: contains(variables['Build.SourceBranch'], 'platvendtestbranch')
+   
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: |
+        #Downcase the environment and management group
+        $AzOpsEnvironment = "$(Environment)".ToLower()
+        $ManagementGroup = "$(ManagementGroup)".ToLower()
+
+        $SubscriptionName = "$(SubscriptionName)".replace(" ", "-")
+        
+        echo "##vso[task.setvariable variable=Environment]$AzOpsEnvironment"
+        echo "##vso[task.setvariable variable=ManagementGroup]$ManagementGroup"
+        echo "##vso[task.setvariable variable=SubscriptionName]$SubscriptionName"
+    displayName: Clean passed parameters
+
+  - script: |
+      echo "$(Environment) #The scope we're deploying at"
+      echo "$(ManagementGroup) #The management group to hang the subscription from"
+      echo "$(SubscriptionName) #The given name for the Subscription that is created"
+    displayName: Inspect variables
+
+  - task: Bash@3
+    displayName: "Configure. Set Global GIT config"
+    inputs:
+      targetType: "inline"
+      script: |
+        git config user.name "AzOps"
+        git config user.email "azuredevops@microsoft.com"
+
+  - task: Bash@3
+    displayName: "Switch. Change working branch"
+    inputs:
+      targetType: "inline"
+      script: |
+        branchName="$(workingbranch)"
+        echo "Switcing to branch $branchName"
+        git switch -c $branchName
+
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: |
+          #ADO variables to proper PoSH ones
+          $AzOpsEnvironment="$(Environment)"
+          $TargetMG="$(ManagementGroup)"
+          $SubscriptionAlias="$(SubscriptionName)"
+
+          #Path specific vars
+          $repoBasePath="$(System.DefaultWorkingDirectory)"
+          $armTemplatePath="$(ArmTemplateRepoPath)"
+
+          #Ensure variables are populated
+          if(!$AzOpsEnvironment) {Write-Error "Environment cannot be null"}
+          if(!$TargetMG) {Write-Error "ManagementGroup cannot be null"}
+          if(!$SubscriptionAlias) {Write-Error "SubscriptionName cannot be null"}
+          if(!$armTemplatePath) {Write-Error "ArmTemplateRepoPath cannot be null"}
+
+          #Acquire Arm template
+          $armTemplateJson = Get-Content $armTemplatePath -Raw
+          $armTemplate = $armTemplateJson | ConvertFrom-Json
+
+          #Customise the template
+          #This could be done in a parameters file in the same way
+          #However i prefer the reduced repo footprint from just working in 1 file. Your preference may be different
+          $armTemplate.parameters.targetManagementGroup.defaultValue = $TargetMG
+          $armTemplate.parameters.subscriptionAliasName.defaultValue = $SubscriptionAlias
+
+          #Find the correct repo path to represent the management group scope
+          #$AzOpsEnvironment = $AzOpsEnvironment.ToLower()
+
+          switch ( $AzOpsEnvironment.tolower() )
+          {
+              "canary" { $repoBasePath+= "/azops-canary/$AzOpsEnvironment ($AzOpsEnvironment)" }
+              "prod" { $repoBasePath+= "/azops-prod/$AzOpsEnvironment ($AzOpsEnvironment)" }
+              default { Write-Error "Could not map $AzOpsEnvironment to a repo path" }
+          }
+
+          if(Test-Path $repoBasePath) {
+              #Base directory does exist
+              Write-Output "$repoBasePath found in file system."
+
+              $searchtext= "$($TargetMG.ToLower()) ($($TargetMG.ToLower()))"
+              Write-Output "Searching for $searchtext in $repoBasePath"
+              $savedir=Get-ChildItem $repoBasePath $searchtext -Recurse -Directory
+
+              $newArmTemplateName="Subscription-$($SubscriptionAlias.replace(' ','')).json"
+
+              $fullArmSavePath=Join-Path $savedir.FullName $newArmTemplateName
+
+              $armTemplate | ConvertTo-Json -Depth 100 | Out-File $fullArmSavePath
+          } else {
+              Write-Error "$repoBasePath does not exist in the file system.  Check and confirm paths"
+          }
+
+      failOnStderr: true
+    displayName: Create Subscription
+
+  - task: Bash@3
+    displayName: "Add file content to index"
+    inputs:
+      targetType: "inline"
+      script: |
+        git add "."
+        git status --short
+
+  - task: Bash@3
+    displayName: "Commit changes to the repository"
+    inputs:
+      targetType: "inline"
+      script: |
+        git commit --allow-empty -m "$(commit_message)"
+
+  - task: Bash@3
+    displayName: "Push. Update remote refs along with associated objects"
+    inputs:
+      targetType: "inline"
+      script: |
+        git push origin $(workingbranch)  -f
+
+  - task: Bash@3
+    displayName: "Create Pull Request to automerge"
+    inputs:
+      targetType: "inline"
+      script: |
+        PRID=$(az repos pr create \
+            --title "$(pull_request)" \
+            --source-branch "$(workingbranch)" \
+            --target-branch "$(targetbranch)" \
+            --squash true \
+            --delete-source-branch true \
+            --auto-complete false \
+            --query "pullRequestId" -o tsv)
+
+        echo "PullRequest $PRID created"
+
+    env:
+      AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
