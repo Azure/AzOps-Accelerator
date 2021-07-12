@@ -13,10 +13,13 @@ This is most suited to enterprises with *robust change management processes* gov
 
 The key changes over the core AzOps Accelerator pipelines are;
 
-1. Two sets of Push and Pull pipelines
+1. Two sets of pipelines
+1. Use of Azure DevOps templates to eliminate duplication of code between the pipelines
+1. Partial Management Group Discovery to respect the scoped access the credentials have
 1. Two configuration files for each pair of pipelines
 1. Use of [Azure DevOps templates](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/templates?view=azure-devops) to eliminate duplication of code between the pipelines
 1. Two sets of branches used to capture changes from each of the environments
+1. Two root folders used in repository with custom naming
 1. Introduction of Pipeline Environments to enable Environment Approvers
 
 ### Implementation Notes
