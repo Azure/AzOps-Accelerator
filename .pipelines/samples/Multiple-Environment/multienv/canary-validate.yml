@@ -1,0 +1,54 @@
+---
+name: "AzOps-Canary-Validate"
+
+trigger: none
+
+variables:
+  - group: AZURECREDENTIALS_CANARY
+
+  - name: settingsfile
+    value: "azops-canary-settings.json"
+  - name: tempbranch
+    value: "refs/heads/automated-canary"
+
+pool:
+  vmImage: "ubuntu-20.04"
+
+jobs:
+  - job: paramcheck
+    displayName: "Param Check"
+
+    steps:
+      - task: Bash@3
+        displayName: "System params"
+        inputs:
+          targetType: "inline"
+          script: |
+            echo "Logging Build Params"
+            echo "This pipeline should be skipped for PR's created by an AzOps Pull Request\n"
+            echo "Build reason $(Build.Reason)"
+            echo "SourceBranch $(System.PullRequest.SourceBranch)"
+            echo "PR Id is $(System.PullRequest.PullRequestId)"
+            echo "Autocomplete PR is set to $(autocompletePR)"
+
+  - job: validate
+    displayName: "Validate"
+    # We only want to validate changes triggered by a build policy PR. Excluding the AzOps automated OOB changes.
+    condition: and(eq(variables['Build.Reason'], 'PullRequest'), ne(variables['System.PullRequest.SourceBranch'], variables['tempbranch']))
+
+    steps:
+      - checkout: self
+        fetchDepth: 0
+        persistCredentials: true
+
+      # Install required runtime modules
+      - template: ../templates/AzOpsInstall.yml
+
+      # Authenticate Azure context
+      - template: ../templates/AzureLoginWithSp.yml
+
+      # Create the git diff file
+      - template: ../templates/GitCreateDiff.yml
+
+      # Run the WhatIf/Pr-comment process
+      - template: ../templates/AzOpsWhatIf.yml
