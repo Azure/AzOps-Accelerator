@@ -1,0 +1,37 @@
+steps:
+- task: PowerShell@2
+  displayName: "Validate"
+  inputs:
+    targetType: "inline"
+    script: |
+      Import-PSFConfig -Path "$(settingsfile)" -Schema MetaJson
+      Initialize-AzOpsEnvironment
+      $diff = Get-Content -Path /tmp/diff.txt
+      $module = Get-Module -Name AzOps
+      $module.Invoke({ Invoke-AzOpsChange -ChangeSet $diff -whatIf })
+      Get-Job | Remove-Job -Force
+
+- task: PowerShell@2
+  displayName: 'Add PR comment'
+  inputs:
+    targetType: "inline"
+    script: |
+      #the Az Repos CLI doesn't support adding a comment to a PR, so the API will be leveraged directly
+      #ref:https://docs.microsoft.com/en-us/cli/azure/repos/pr?view=azure-cli-latest#az_repos_pr_update
+
+      Write-Output "Adding what-if markdown comment to Pull Request $(System.PullRequest.PullRequestId)"
+
+      if (Test-Path "/tmp/OUTPUT.md") {
+          $uri = "$(System.CollectionUri)/$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.Name)/pullRequests/$(System.PullRequest.PullRequestId)/threads?api-version=6.0"
+        
+          Invoke-RestMethod `
+          -Method Post `
+          -Headers @{ "Authorization" = "Bearer $(System.AccessToken)"; "Content-Type" = "application/json" } `
+          -Body (@{
+              "comments" = @(
+                  @{ "parentCommentId" = 0; "content" = "$(Get-Content -Path /tmp/OUTPUT.md -Raw)"; "commentType" = 1 }
+              )
+              "status"  = 1
+          } | ConvertTo-Json) `
+          -Uri $uri
+      }

@@ -6,13 +6,15 @@ steps:
     targetType: "inline"
     script: |
       echo "Checking for existing, active Pull requests between $(workingbranch) and $(targetbranch)"
+      echo "This *could* happen if build policies prevented automated PR's from being merged"
+
       ACTIVEPRS=$(az repos pr list \
           -s "$(workingbranch)" \
           -t "$(targetbranch)" \
           --status active \
           --query "[].[pullRequestId, title, createdBy.displayName]")
       
-      echo "Active Pull requests"
+      echo "Active Pull request count"
       echo $ACTIVEPRS
 
       PRCOUNT=$(echo $ACTIVEPRS | jq -r length)
@@ -43,10 +45,11 @@ steps:
           --auto-complete true \
           --query "pullRequestId" -o tsv)
 
-      echo "PullRequest $PRID created"
+      echo "PullRequest $PRID created\n"
 
       #Build policies can prevent the automatic completion of the PR
       #This command will force the PR to complete, but ONLY IF the Build Service has permissions granted to bypass policy
+      echo "Updating PR to complete, if this fails - ensure build service has 'Bypass policies when completing pull requests' repo permission"
       az repos pr update --id $PRID --status completed --bypass-policy true --bypass-policy-reason "AzOps automated complete"
 
   condition: and(contains(variables['state'], 'continue'),contains(variables['createpr'], 'true'))
