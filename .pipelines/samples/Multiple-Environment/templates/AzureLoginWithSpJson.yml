@@ -11,7 +11,6 @@ steps:
       $ARM_CLIENT_ID=$jAZCreds.clientId
       $ARM_CLIENT_SECRET=$jAZCreds.clientSecret
       $ARM_TENANT_ID=$jAZCreds.tenantId
-      $ARM_SUBSCRIPTION_ID=$jAZCreds.subscriptionId
       
       $credential = New-Object PSCredential -ArgumentList $ARM_CLIENT_ID, (ConvertTo-SecureString -String $ARM_CLIENT_SECRET -AsPlainText -Force)
-      Connect-AzAccount -TenantId $ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $ARM_SUBSCRIPTION_ID
+      Connect-AzAccount -TenantId $ARM_TENANT_ID -ServicePrincipal -Credential $credential

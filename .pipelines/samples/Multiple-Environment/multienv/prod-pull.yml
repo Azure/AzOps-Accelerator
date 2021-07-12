@@ -1,9 +1,19 @@
 ---
-name: "AzOps - Prod - Pull"
 trigger: none
 
+# Run after the Push pipeline completes
+# We can't do it here, because the pipeline will run even if the source pipeline skips
+# resources:
+#   pipelines:
+#     - pipeline: TriggerPull
+#       source: "AzOps-Prod-Push"
+#       trigger:
+#        branches:
+#         include:
+#           - main
+
 schedules:
-  - cron: "0 */6 * * *"
+  - cron: "0 */3 * * *"
     branches:
       include:
         - main
@@ -20,7 +30,7 @@ variables:
   - name: commit_message
     value: "Automated commit"
   - name: pull_request
-    value: "AzOps (prod) Automated State"
+    value: "AzOps (Prod) Automated State"
 
   - name: workingbranch
     value: "automated-prod"
@@ -62,3 +72,5 @@ jobs:
 
       # Create PR
       - template: ../templates/GitCreatePullPR.yml
+
+      

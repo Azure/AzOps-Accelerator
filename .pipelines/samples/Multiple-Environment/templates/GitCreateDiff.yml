@@ -4,9 +4,7 @@ steps:
   inputs:
     targetType: "inline"
     script: |
-      branchName="$(workingbranch)"
-
-      echo "Creating diff for branch $branchName"
-      git diff origin/$branchName --name-status > /tmp/diff.txt
+      echo $(git diff --name-status HEAD^ HEAD)
+      git diff --name-status HEAD^ HEAD > /tmp/diff.txt
 
       cat /tmp/diff.txt
