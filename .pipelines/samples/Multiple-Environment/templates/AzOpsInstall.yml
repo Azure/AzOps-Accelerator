@@ -1,9 +1,24 @@
 steps:
 - task: PowerShell@2
-  displayName: "Install AzOps and Dependencies"
+  displayName: "Install (Edge) AzOps"
+  condition: or(eq(variables['AzOpsVersion'], ''), eq(variables['AzOpsVersion'], 'edge'))
   inputs:
     targetType: "inline"
     script: |
-      Install-Module -Name AzOps -AllowPrerelease -Force
+      Write-Output "Installing latest AzOps Version"
+
+      Install-Module -Name AzOps -Force
+      
+      Get-InstalledModule | select Name, Version, Repository, InstalledDate | ft
+
+- task: PowerShell@2
+  displayName: "Install (Pinned) AzOps"
+  condition: ne(variables['AzOpsVersion'], '')
+  inputs:
+    targetType: "inline"
+    script: |
+      Write-Output "Installing AzOps Version $(AzOpsVersion)"
+
+      Install-Module -Name AzOps -RequiredVersion $(AzOpsVersion) -Force
       
       Get-InstalledModule | select Name, Version, Repository, InstalledDate | ft
