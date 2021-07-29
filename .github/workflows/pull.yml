@@ -2,7 +2,6 @@
 name: "AzOps - Pull"
 
 on:
-
   #
   # Workflow Dispatch
   # This is to invoke the action from the GitHub UI
@@ -47,7 +46,6 @@ on:
       - completed
 
 env:
-
   #
   # Credentials
   #
@@ -106,9 +104,7 @@ env:
   pull_request: "Automated State"
 
 jobs:
-
   pull:
-
     #
     # Pull
     #
@@ -116,8 +112,14 @@ jobs:
     name: "Pull"
     runs-on: ubuntu-20.04
 
-    steps:
+    #
+    # Only run Pull after successful Push or on manually triggered/scheduled events
+    #
 
+    if: ${{ github.event.workflow_run.conclusion == 'success' ||
+      contains(fromJson('["schedule", "workflow_dispatch", "repository_dispatch"]'), github.event_name) }}
+
+    steps:
       #
       # Checkout
       # Checks-out the repository
@@ -226,7 +228,6 @@ jobs:
         shell: bash
         run: |
           git commit -m "${{ env.commit_message }}"
-
 
       #
       # Push
