@@ -2,17 +2,17 @@
 name: "AzOps - Validate"
 
 on:
-
   #
   # Pull Request
-  # Upon the creation of a new Pull Request
+  # Upon the creation of a new Pull Request in the root folder
   # this workflow will execute.
   #
 
   pull_request:
+    paths:
+      - "root/**"
 
 env:
-
   #
   # Credentials
   #
@@ -23,9 +23,7 @@ env:
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
 jobs:
-
   validate:
-
     #
     # Validate
     #
@@ -34,7 +32,6 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-
       #
       # Checkout
       # Checks-out the repository
