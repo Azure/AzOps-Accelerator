@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "AzOps"
+    }
+  },
+  "parameters": {},
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "name": "8285b8d6-90a2-4d8e-ada6-ec2cccf31234",
+      "apiVersion": "2021-04-01-preview",
+      "properties": {
+        "DisplayName": "assesment1",
+        "ObjectType": "ServicePrincipal",
+        "PrincipalId": "a8ae58d6-5624-4377-a198-e7ed5a94b571",
+        "RoleDefinitionId": "/providers/Microsoft.Authorization/RoleDefinitions/0edf70ab-79b6-471b-8d40-58829e94bcb6",
+        "RoleDefinitionName": "testRoleDelete"
+      }
+    }
+  ],
+  "outputs": {}
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "AzOps"
+    }
+  },
+  "parameters": {},
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Authorization/roleDefinitions",
+      "name": "13dee34d-51e7-4066-a1ae-7bfbde6d2152",
+      "apiVersion": "2018-07-01",
+      "properties": {
+        "RoleName": "testmgmcustom",
+        "Description": "",
+        "AssignableScopes": [
+          "/providers/Microsoft.Management/managementGroups/934f16de-8a0c-46cc-a5eb-94f7db9c51fd"
+        ],
+        "Permissions": [
+          {
+            "Actions": [
+              "*"
+            ],
+            "DataActions": [],
+            "NotActions": [],
+            "NotDataActions": []
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {}
+}

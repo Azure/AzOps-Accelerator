@@ -1,0 +1,50 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "input": {
+      "value": {
+        "Name": "2adcfb97-90b0-4f5c-90e3-8b9c674d3ac3",
+        "ResourceType": "Microsoft.Authorization/policyDefinitions",
+        "Properties": {
+          "Description": null,
+          "DisplayName": "testpolicy",
+          "Metadata": {
+            "category": "test"
+          },
+          "Mode": "All",
+          "Parameters": {},
+          "PolicyRule": {
+            "if": {
+              "allOf": [
+                {
+                  "field": "type",
+                  "equals": "Microsoft.KeyVault/vaults"
+                },
+                {
+                  "anyOf": [
+                    {
+                      "field": "Microsoft.KeyVault/vaults/networkAcls.virtualNetworkRules[*].id",
+                      "exists": "false"
+                    },
+                    {
+                      "field": "Microsoft.KeyVault/vaults/networkAcls.virtualNetworkRules[*].id",
+                      "notLike": "*"
+                    },
+                    {
+                      "field": "Microsoft.KeyVault/vaults/networkAcls.defaultAction",
+                      "equals": "Allow"
+                    }
+                  ]
+                }
+              ]
+            },
+            "then": {
+              "effect": "audit"
+            }
+          }
+        }
+      }
+    }
+  }
+}
