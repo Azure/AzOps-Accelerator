@@ -91,6 +91,7 @@ jobs:
           Initialize-AzOpsEnvironment
           Import-PSFConfig -Path settings.json -Schema MetaJson
           $diff = Get-Content -Path /tmp/diff.txt
+          Write-Host "diff text" $diff
           $module = Get-Module -Name AzOps
           $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -WhatIf })
           Get-Job | Remove-Job -Force
