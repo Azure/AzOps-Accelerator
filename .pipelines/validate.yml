@@ -85,6 +85,8 @@ jobs:
           script: |
             echo $(git diff --name-status HEAD^ HEAD)
             git diff --name-status HEAD^ HEAD > /tmp/diff.txt
+            echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r) 
+            git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
 
       #
       # Validate
@@ -98,8 +100,9 @@ jobs:
             Import-PSFConfig -Path settings.json -Schema MetaJson
             Initialize-AzOpsEnvironment
             $diff = Get-Content -Path /tmp/diff.txt
+            $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
             $module = Get-Module -Name AzOps
-            $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -whatIf })
+            $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf })
             Get-Job | Remove-Job -Force
 
       #
