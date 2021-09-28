@@ -4,7 +4,7 @@ function Install-SourceModule {
     param(
         $Repository,
 
-        $Branch = "main"
+        $Branch = "Rakshana-mgmGroupTest"
     )
 
     process {
