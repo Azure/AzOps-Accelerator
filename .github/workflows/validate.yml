@@ -80,7 +80,11 @@ jobs:
         run: |
           echo $(git diff --name-status HEAD^ HEAD)
           git diff --name-status HEAD^ HEAD > /tmp/diff.txt
-          
+          if [ git diff --diff-filter=D ];
+          then
+          echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r) 
+          git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
+          fi
 
       #
       # Validate
@@ -92,14 +96,17 @@ jobs:
           Initialize-AzOpsEnvironment
           Import-PSFConfig -Path settings.json -Schema MetaJson
           $diff = Get-Content -Path /tmp/diff.txt
-          # $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
-          Write-Host "diff text" $diff
-          #Write-Host "diff deleted text" $diffdeletedfiles
           $module = Get-Module -Name AzOps
+          if(Test-Path -Path "/tmp/diffdeletedfiles.txt")
+          {
+          $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
+          Write-Host "diff text" $diff
+          Write-Host "diff deleted text" $diffdeletedfiles
+          $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf })
+          }else{
+          Write-Host "diff text" $diff
           $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -WhatIf })
-          #-DeleteSetContents $diffdeletedfiles
-          #echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r) 
-          #git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
+          }
           Get-Job | Remove-Job -Force
 
       #
