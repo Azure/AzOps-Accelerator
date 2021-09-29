@@ -94,8 +94,10 @@ jobs:
           script: |
             echo $(git diff --name-status HEAD^ HEAD)
             git diff --name-status HEAD^ HEAD > /tmp/diff.txt
-            echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r) 
-            git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
+            if [ ! -z "$(git diff --diff-filter=D HEAD^ HEAD)" ]; then
+              echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r)
+              git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
+            fi
 
       #
       # Deploy
@@ -112,5 +114,12 @@ jobs:
             $diff = Get-Content -Path /tmp/diff.txt
             $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
             $module = Get-Module -Name AzOps
-            $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf })
+            if(Test-Path -Path "/tmp/diffdeletedfiles.txt")
+            {
+              $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
+              $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles })
+            }
+            else{
+              $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff })
+            }
             Get-Job | Remove-Job -Force
