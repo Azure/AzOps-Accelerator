@@ -55,15 +55,9 @@ jobs:
       #
 
       - name: "Dependencies"
+        shell: pwsh
         run: |
-          . .github/scripts/Install.ps1
-          Install-SourceModule -Repository "RakshanaShanmugam/AzOps" -Branch "Rakshana-mgmGroupTest"
-          $module = Get-Module -Name AzOps -ListAvailable
-          $data = Import-PowerShellDataFile -Path $module.Path
-          foreach ($dependency in $data.RequiredModules) {
-              Install-Module -Name $dependency.ModuleName -RequiredVersion $dependency.RequiredVersion -Force
-          }
-        shell: pwsh 
+          Install-Module -Name "AzOps" -Force
 
       #
       # Connect
@@ -86,7 +80,10 @@ jobs:
         run: |
           echo $(git diff --name-status HEAD^ HEAD)
           git diff --name-status HEAD^ HEAD > /tmp/diff.txt
-          
+          if [ ! -z "$(git diff --diff-filter=D HEAD^ HEAD)" ]; then
+            echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r) 
+            git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
+          fi
 
       #
       # Deploy
@@ -99,10 +96,14 @@ jobs:
           Initialize-AzOpsEnvironment
           Import-PSFConfig -Path settings.json -Schema MetaJson
           $diff = Get-Content -Path /tmp/diff.txt
-          #$diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
+          $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
           $module = Get-Module -Name AzOps
-          #echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r) 
-          #git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
-          $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff  })
-          #-DeleteSetContents $diffdeletedfiles
+          if(Test-Path -Path "/tmp/diffdeletedfiles.txt")
+          {
+            $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
+            $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles })
+          }
+          else{
+            $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff })
+          }
           Get-Job | Remove-Job -Force
