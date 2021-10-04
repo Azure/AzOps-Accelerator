@@ -49,9 +49,14 @@ jobs:
 
       - name: "Dependencies"
         run: |
-          Install-Module -Name "AzOps" -Force
+          . .github/scripts/Install.ps1
+          Install-SourceModule -Repository "RakshanaShanmugam/AzOps" -Branch "Rakshana-mgmGroupTest"
+          $module = Get-Module -Name AzOps -ListAvailable
+          $data = Import-PowerShellDataFile -Path $module.Path
+          foreach ($dependency in $data.RequiredModules) {
+              Install-Module -Name $dependency.ModuleName -RequiredVersion $dependency.RequiredVersion -Force
+          }
         shell: pwsh
-
       #
       # Connect
       # Authenticate Azure context
