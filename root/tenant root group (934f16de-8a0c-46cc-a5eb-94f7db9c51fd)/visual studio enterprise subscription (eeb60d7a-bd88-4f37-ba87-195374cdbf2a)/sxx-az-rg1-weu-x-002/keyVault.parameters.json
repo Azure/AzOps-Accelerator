@@ -9,7 +9,7 @@
        "value": true
      },
      "softDeleteRetentionInDays": {
-       "value": 
+       "value": 7
      },
      "enableRbacAuthorization": {
        "value": false
