@@ -49,13 +49,7 @@ jobs:
 
       - name: "Dependencies"
         run: |
-          . .github/scripts/Install.ps1
-          Install-SourceModule -Repository "RakshanaShanmugam/AzOps" -Branch "Rakshana-mgmGroupTest"
-          $module = Get-Module -Name AzOps -ListAvailable
-          $data = Import-PowerShellDataFile -Path $module.Path
-          foreach ($dependency in $data.RequiredModules) {
-              Install-Module -Name $dependency.ModuleName -RequiredVersion $dependency.RequiredVersion -Force
-          }
+          Install-Module -Name "AzOps" -Force
         shell: pwsh
 
       #
@@ -81,7 +75,7 @@ jobs:
           echo $(git diff --name-status HEAD^ HEAD)
           git diff --name-status HEAD^ HEAD > /tmp/diff.txt
           if [ ! -z "$(git diff --diff-filter=D HEAD^ HEAD)" ]; then
-            echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r) 
+            echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r)
             git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
           fi
 
@@ -98,13 +92,11 @@ jobs:
           $module = Get-Module -Name AzOps
           if(Test-Path -Path "/tmp/diffdeletedfiles.txt")
           {
-          $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
-          Write-Host "diff text" $diff
-          Write-Host "diff deleted text" $diffdeletedfiles
-          $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf })
-          }else{
-          Write-Host "diff text" $diff
-          $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -WhatIf })
+            $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
+            $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf })
+          }
+          else{
+            $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -WhatIf })
           }
           Get-Job | Remove-Job -Force
 
