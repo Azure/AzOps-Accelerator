@@ -93,6 +93,7 @@ jobs:
           if(Test-Path -Path "/tmp/diffdeletedfiles.txt")
           {
             $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
+            Write-Host $diffdeletedfiles
             $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf })
           }
           else{
