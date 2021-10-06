@@ -11,10 +11,10 @@
   "resources": [
     {
       "type": "Microsoft.Resources/resourceGroups",
-      "name": "Test",
+      "name": "tev1",
       "apiVersion": "2019-05-01",
-      "location": "eastus",
-      "tags": null,
+      "location": "northeurope",
+      "tags": {},
       "properties": {}
     }
   ],
