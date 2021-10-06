@@ -49,6 +49,20 @@
               }
             },
             {
+              "type": "Microsoft.Management/managementGroups",
+              "apiVersion": "2020-05-01",
+              "name": "test2mgm",
+              "scope": "/",
+              "properties": {
+                "displayName": "test2mgm",
+                "details": {
+                  "parent": {
+                    "id": "/providers/Microsoft.Management/managementGroups/934f16de-8a0c-46cc-a5eb-94f7db9c51fd"
+                  }
+                }
+              }
+            },
+            {
               "type": "Microsoft.Management/managementGroups/subscriptions",
               "apiVersion": "2021-04-01",
               "name": "934f16de-8a0c-46cc-a5eb-94f7db9c51fd/eeb60d7a-bd88-4f37-ba87-195374cdbf2a",
