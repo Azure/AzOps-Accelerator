@@ -24,7 +24,7 @@
             "Core.OfferType": "MS-AZR-0017P",
             "Core.PartialMgDiscoveryRoot": [],
             "Core.SkipPolicy": false,
-            "Core.SkipResource": true,
+            "Core.SkipResource": false,
             "Core.SkipResourceGroup": false,
             "Core.SkipRole": false,
             "Core.SubscriptionsToIncludeResourceGroups": "*",
