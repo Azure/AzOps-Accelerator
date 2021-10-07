@@ -1,0 +1,61 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "AzOps"
+    }
+  },
+  "parameters": {},
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Migrate/MigrateProjects",
+      "name": "testproject",
+      "apiVersion": "2020-06-01-preview",
+      "location": "westus2",
+      "tags": {
+        "Migrate Project": "testproject"
+      },
+      "properties": {
+        "utilityStorageAccountId": null,
+        "publicNetworkAccess": "Enabled",
+        "privateEndpointConnections": [],
+        "registeredTools": [],
+        "serviceEndpoint": "https://1b5f3619-b35c-4e0d-9db7-63e905c77599-isv.wus2.hub.privatelink.prod.migration.windowsazure.com/resources/1b5f3619-b35c-4e0d-9db7-63e905c77599",
+        "summary": {
+          "servers": {
+            "instanceType": "Servers",
+            "discoveredCount": 0,
+            "assessedCount": 0,
+            "replicatingCount": 0,
+            "testMigratedCount": 0,
+            "migratedCount": 0,
+            "refreshSummaryState": "Completed",
+            "extendedSummary": {
+              "microsoftDiscoveredCount": "0",
+              "microsoftMachinesCount": "0"
+            }
+          },
+          "databases": {
+            "instanceType": "Databases",
+            "refreshSummaryState": "Completed",
+            "extendedSummary": {}
+          },
+          "webApplications": {
+            "instanceType": "WebApplications",
+            "refreshSummaryState": "Completed",
+            "extendedSummary": {}
+          },
+          "desktopVirtualization": {
+            "instanceType": "DesktopVirtualization",
+            "refreshSummaryState": "Completed",
+            "extendedSummary": {}
+          }
+        },
+        "refreshSummaryState": "Completed"
+      }
+    }
+  ],
+  "outputs": {}
+}

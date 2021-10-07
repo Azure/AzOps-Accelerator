@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "AzOps"
+    }
+  },
+  "parameters": {},
+  "variables": {},
+  "resources": [
+    {
+      "type": "microsoft.devtestlab/schedules",
+      "name": "shutdown-computevm-testvm01",
+      "apiVersion": "2018-10-15-preview",
+      "location": "eastus",
+      "tags": null,
+      "properties": {
+        "status": "Enabled",
+        "taskType": "ComputeVmShutdownTask",
+        "dailyRecurrence": {
+          "time": "1900"
+        },
+        "timeZoneId": "UTC",
+        "notificationSettings": {
+          "status": "Enabled",
+          "timeInMinutes": 30,
+          "emailRecipient": "rakshana1002@outlook.com",
+          "notificationLocale": "en"
+        },
+        "targetResourceId": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/TestRG/providers/Microsoft.Compute/virtualMachines/testvm01",
+        "uniqueIdentifier": "d50c56e5-1f39-438a-8a86-f60332090d24"
+      }
+    }
+  ],
+  "outputs": {}
+}
