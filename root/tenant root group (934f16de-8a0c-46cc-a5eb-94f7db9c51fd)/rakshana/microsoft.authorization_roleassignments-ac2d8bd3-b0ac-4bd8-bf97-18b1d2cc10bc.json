@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "AzOps"
+    }
+  },
+  "parameters": {},
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "name": "ac2d8bd3-b0ac-4bd8-bf97-18b1d2cc10bc",
+      "apiVersion": "2021-04-01-preview",
+      "properties": {
+        "DisplayName": "rakshana1002",
+        "ObjectType": "User",
+        "PrincipalId": "cf21fc90-1e25-4900-87d8-8bbba51c283b",
+        "RoleDefinitionId": "/providers/Microsoft.Authorization/RoleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635",
+        "RoleDefinitionName": "Owner"
+      }
+    }
+  ],
+  "outputs": {}
+}

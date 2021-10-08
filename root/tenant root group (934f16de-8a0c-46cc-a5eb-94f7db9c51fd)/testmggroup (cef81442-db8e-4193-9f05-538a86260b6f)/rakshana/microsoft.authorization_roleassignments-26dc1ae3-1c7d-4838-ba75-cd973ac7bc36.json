@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "AzOps"
+    }
+  },
+  "parameters": {},
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "name": "26dc1ae3-1c7d-4838-ba75-cd973ac7bc36",
+      "apiVersion": "2021-04-01-preview",
+      "properties": {
+        "DisplayName": "rakshana1002-MicrosoftTrainingProject-eeb60d7a-bd88-4f37-ba87-195374cdbf2a",
+        "ObjectType": "ServicePrincipal",
+        "PrincipalId": "f3e51425-6af6-422b-9bd9-04e95d1aac24",
+        "RoleDefinitionId": "/providers/Microsoft.Authorization/RoleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
+        "RoleDefinitionName": "Reader"
+      }
+    }
+  ],
+  "outputs": {}
+}
