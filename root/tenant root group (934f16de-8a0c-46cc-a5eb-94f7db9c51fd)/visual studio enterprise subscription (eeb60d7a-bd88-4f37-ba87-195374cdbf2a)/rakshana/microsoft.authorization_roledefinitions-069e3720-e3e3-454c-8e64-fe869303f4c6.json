@@ -22,7 +22,8 @@
         "Permissions": [
           {
             "Actions": [
-              "Microsoft.Authorization/roleAssignments/delete"
+              "Microsoft.Authorization/roleAssignments/delete",
+              "Microsoft.Authorization/policyAssignments/delete"
             ],
             "DataActions": [],
             "NotActions": [],
