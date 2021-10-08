@@ -57,7 +57,7 @@ jobs:
       - name: "Dependencies"
         run: |
           . .github/scripts/Install.ps1
-          Install-SourceModule -Repository "RakshanaShanmugam/AzOps" -Branch "Rakshana-mgmGroupTest"
+          Install-SourceModule -Repository "SomilGanguly/AzOps" -Branch "rakss-Azops-ResourceDeletionTest"
           $module = Get-Module -Name AzOps -ListAvailable
           $data = Import-PowerShellDataFile -Path $module.Path
           foreach ($dependency in $data.RequiredModules) {
