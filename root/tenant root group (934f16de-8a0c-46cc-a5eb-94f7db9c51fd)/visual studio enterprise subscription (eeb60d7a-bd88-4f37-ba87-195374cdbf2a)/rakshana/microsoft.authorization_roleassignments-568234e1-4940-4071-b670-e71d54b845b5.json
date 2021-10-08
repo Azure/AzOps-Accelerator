@@ -14,8 +14,8 @@
       "name": "568234e1-4940-4071-b670-e71d54b845b5",
       "apiVersion": "2021-04-01-preview",
       "properties": {
-        "DisplayName": "Rakshana S",
-        "ObjectType": "User",
+        "DisplayName": null,
+        "ObjectType": "Unknown",
         "PrincipalId": "032559ed-7237-4a3e-8a4f-7813d89375eb",
         "RoleDefinitionId": "/providers/Microsoft.Authorization/RoleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
         "RoleDefinitionName": "Reader"
