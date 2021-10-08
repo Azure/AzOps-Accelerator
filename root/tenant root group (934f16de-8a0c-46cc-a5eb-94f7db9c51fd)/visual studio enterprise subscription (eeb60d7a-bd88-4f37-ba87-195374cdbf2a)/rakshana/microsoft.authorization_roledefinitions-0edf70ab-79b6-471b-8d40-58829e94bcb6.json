@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "AzOps"
+    }
+  },
+  "parameters": {},
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Authorization/roleDefinitions",
+      "name": "0edf70ab-79b6-471b-8d40-58829e94bcb6",
+      "apiVersion": "2018-07-01",
+      "properties": {
+        "RoleName": "testRoleDelete",
+        "Description": "",
+        "AssignableScopes": [
+          "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a"
+        ],
+        "Permissions": [
+          {
+            "Actions": [
+              "*"
+            ],
+            "DataActions": [],
+            "NotActions": [],
+            "NotDataActions": []
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {}
+}
