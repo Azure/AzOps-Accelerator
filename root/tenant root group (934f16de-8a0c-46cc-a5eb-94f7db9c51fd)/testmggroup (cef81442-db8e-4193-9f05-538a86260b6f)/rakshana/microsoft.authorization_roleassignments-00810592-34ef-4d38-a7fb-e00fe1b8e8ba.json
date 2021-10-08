@@ -11,7 +11,7 @@
   "resources": [
     {
       "type": "Microsoft.Authorization/roleAssignments",
-      "name": "48a0dc93-23c3-4a39-89ef-aac691e34cef",
+      "name": "00810592-34ef-4d38-a7fb-e00fe1b8e8ba",
       "apiVersion": "2021-04-01-preview",
       "properties": {
         "DisplayName": "azops",
