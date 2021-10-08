@@ -4,7 +4,7 @@ function Install-SourceModule {
     param(
         $Repository,
 
-        $Branch = "Rakshana-mgmGroupTest"
+        $Branch = "rakss-Azops-ResourceDeletionTest"
     )
 
     process {
