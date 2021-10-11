@@ -40,11 +40,6 @@
             "properties": {
               "addressPrefix": "10.0.2.0/26",
               "networkSecurityGroup": {},
-              "ipConfigurations": [
-                {},
-                {},
-                {}
-              ],
               "networkIntentPolicies": [
                 {}
               ],
@@ -72,11 +67,6 @@
             "properties": {
               "addressPrefix": "10.0.1.0/26",
               "networkSecurityGroup": {},
-              "ipConfigurations": [
-                {},
-                {},
-                {}
-              ],
               "networkIntentPolicies": [
                 {}
               ],
