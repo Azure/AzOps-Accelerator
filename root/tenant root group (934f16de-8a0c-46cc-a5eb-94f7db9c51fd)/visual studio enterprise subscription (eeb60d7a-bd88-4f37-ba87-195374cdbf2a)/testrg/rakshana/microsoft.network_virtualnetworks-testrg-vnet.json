@@ -34,6 +34,70 @@
               "privateLinkServiceNetworkPolicies": "Enabled"
             },
             "type": "Microsoft.Network/virtualNetworks/subnets"
+          },
+          {
+            "name": "adb-private",
+            "properties": {
+              "addressPrefix": "10.0.2.0/26",
+              "networkSecurityGroup": {},
+              "ipConfigurations": [
+                {},
+                {},
+                {}
+              ],
+              "networkIntentPolicies": [
+                {}
+              ],
+              "delegations": [
+                {
+                  "name": "databricks-del-gklb6mbxeyo4u",
+                  "properties": {
+                    "serviceName": "Microsoft.Databricks/workspaces",
+                    "actions": [
+                      "Microsoft.Network/virtualNetworks/subnets/join/action",
+                      "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+                      "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"
+                    ]
+                  },
+                  "type": "Microsoft.Network/virtualNetworks/subnets/delegations"
+                }
+              ],
+              "privateEndpointNetworkPolicies": "Enabled",
+              "privateLinkServiceNetworkPolicies": "Enabled"
+            },
+            "type": "Microsoft.Network/virtualNetworks/subnets"
+          },
+          {
+            "name": "adb-public",
+            "properties": {
+              "addressPrefix": "10.0.1.0/26",
+              "networkSecurityGroup": {},
+              "ipConfigurations": [
+                {},
+                {},
+                {}
+              ],
+              "networkIntentPolicies": [
+                {}
+              ],
+              "delegations": [
+                {
+                  "name": "databricks-del-o76s6gtcdigii",
+                  "properties": {
+                    "serviceName": "Microsoft.Databricks/workspaces",
+                    "actions": [
+                      "Microsoft.Network/virtualNetworks/subnets/join/action",
+                      "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+                      "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"
+                    ]
+                  },
+                  "type": "Microsoft.Network/virtualNetworks/subnets/delegations"
+                }
+              ],
+              "privateEndpointNetworkPolicies": "Enabled",
+              "privateLinkServiceNetworkPolicies": "Enabled"
+            },
+            "type": "Microsoft.Network/virtualNetworks/subnets"
           }
         ],
         "virtualNetworkPeerings": [],

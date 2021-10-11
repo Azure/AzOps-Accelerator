@@ -1,0 +1,239 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "AzOps"
+    }
+  },
+  "parameters": {},
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Network/networkIntentPolicies",
+      "name": "adb-eastus-1a68d250b620d5c65225d6a9",
+      "apiVersion": "2021-05-01",
+      "location": "eastus",
+      "tags": null,
+      "properties": {
+        "securityRules": [
+          {
+            "name": "databricks-worker-to-worker-inbound",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/TestRG/providers/Microsoft.Network/networkIntentPolicies/adb-eastus-1a68d250b620d5c65225d6a9/securityRules/databricks-worker-to-worker-inbound",
+            "etag": "W/\"363e8d12-cbf9-4e60-8f4a-6f41d784ec17\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Required for worker nodes communication within a cluster.",
+              "protocol": "*",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourcePortRanges": [
+                "*"
+              ],
+              "destinationPortRanges": [
+                "*"
+              ],
+              "sourceAddressPrefixes": [
+                "VirtualNetwork"
+              ],
+              "destinationAddressPrefixes": [
+                "VirtualNetwork"
+              ]
+            },
+            "type": "Microsoft.Network/networkIntentPolicies/securityRules"
+          },
+          {
+            "name": "databricks-worker-to-databricks-webapp",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/TestRG/providers/Microsoft.Network/networkIntentPolicies/adb-eastus-1a68d250b620d5c65225d6a9/securityRules/databricks-worker-to-databricks-webapp",
+            "etag": "W/\"363e8d12-cbf9-4e60-8f4a-6f41d784ec17\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Required for workers communication with Databricks Webapp.",
+              "protocol": "tcp",
+              "access": "Allow",
+              "direction": "Outbound",
+              "sourcePortRanges": [
+                "*"
+              ],
+              "destinationPortRanges": [
+                "443"
+              ],
+              "sourceAddressPrefixes": [
+                "VirtualNetwork"
+              ],
+              "destinationAddressPrefixes": [
+                "AzureDatabricks"
+              ]
+            },
+            "type": "Microsoft.Network/networkIntentPolicies/securityRules"
+          },
+          {
+            "name": "databricks-worker-to-sql",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/TestRG/providers/Microsoft.Network/networkIntentPolicies/adb-eastus-1a68d250b620d5c65225d6a9/securityRules/databricks-worker-to-sql",
+            "etag": "W/\"363e8d12-cbf9-4e60-8f4a-6f41d784ec17\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Required for workers communication with Azure SQL services.",
+              "protocol": "tcp",
+              "access": "Allow",
+              "direction": "Outbound",
+              "sourcePortRanges": [
+                "*"
+              ],
+              "destinationPortRanges": [
+                "3306"
+              ],
+              "sourceAddressPrefixes": [
+                "VirtualNetwork"
+              ],
+              "destinationAddressPrefixes": [
+                "Sql"
+              ]
+            },
+            "type": "Microsoft.Network/networkIntentPolicies/securityRules"
+          },
+          {
+            "name": "databricks-worker-to-storage",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/TestRG/providers/Microsoft.Network/networkIntentPolicies/adb-eastus-1a68d250b620d5c65225d6a9/securityRules/databricks-worker-to-storage",
+            "etag": "W/\"363e8d12-cbf9-4e60-8f4a-6f41d784ec17\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Required for workers communication with Azure Storage services.",
+              "protocol": "tcp",
+              "access": "Allow",
+              "direction": "Outbound",
+              "sourcePortRanges": [
+                "*"
+              ],
+              "destinationPortRanges": [
+                "443"
+              ],
+              "sourceAddressPrefixes": [
+                "VirtualNetwork"
+              ],
+              "destinationAddressPrefixes": [
+                "Storage"
+              ]
+            },
+            "type": "Microsoft.Network/networkIntentPolicies/securityRules"
+          },
+          {
+            "name": "databricks-worker-to-worker-outbound",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/TestRG/providers/Microsoft.Network/networkIntentPolicies/adb-eastus-1a68d250b620d5c65225d6a9/securityRules/databricks-worker-to-worker-outbound",
+            "etag": "W/\"363e8d12-cbf9-4e60-8f4a-6f41d784ec17\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Required for worker nodes communication within a cluster.",
+              "protocol": "*",
+              "access": "Allow",
+              "direction": "Outbound",
+              "sourcePortRanges": [
+                "*"
+              ],
+              "destinationPortRanges": [
+                "*"
+              ],
+              "sourceAddressPrefixes": [
+                "VirtualNetwork"
+              ],
+              "destinationAddressPrefixes": [
+                "VirtualNetwork"
+              ]
+            },
+            "type": "Microsoft.Network/networkIntentPolicies/securityRules"
+          },
+          {
+            "name": "databricks-worker-to-eventhub",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/TestRG/providers/Microsoft.Network/networkIntentPolicies/adb-eastus-1a68d250b620d5c65225d6a9/securityRules/databricks-worker-to-eventhub",
+            "etag": "W/\"363e8d12-cbf9-4e60-8f4a-6f41d784ec17\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Required for worker communication with Azure Eventhub services.",
+              "protocol": "tcp",
+              "access": "Allow",
+              "direction": "Outbound",
+              "sourcePortRanges": [
+                "*"
+              ],
+              "destinationPortRanges": [
+                "9093"
+              ],
+              "sourceAddressPrefixes": [
+                "VirtualNetwork"
+              ],
+              "destinationAddressPrefixes": [
+                "EventHub"
+              ]
+            },
+            "type": "Microsoft.Network/networkIntentPolicies/securityRules"
+          },
+          {
+            "name": "databricks-control-plane-to-worker-ssh",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/TestRG/providers/Microsoft.Network/networkIntentPolicies/adb-eastus-1a68d250b620d5c65225d6a9/securityRules/databricks-control-plane-to-worker-ssh",
+            "etag": "W/\"363e8d12-cbf9-4e60-8f4a-6f41d784ec17\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Required for Databricks control plane management of worker nodes.",
+              "protocol": "tcp",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourcePortRanges": [
+                "*"
+              ],
+              "destinationPortRanges": [
+                "22"
+              ],
+              "sourceAddressPrefixes": [
+                "AzureDatabricks"
+              ],
+              "destinationAddressPrefixes": [
+                "VirtualNetwork"
+              ]
+            },
+            "type": "Microsoft.Network/networkIntentPolicies/securityRules"
+          },
+          {
+            "name": "databricks-control-plane-to-worker-proxy",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/TestRG/providers/Microsoft.Network/networkIntentPolicies/adb-eastus-1a68d250b620d5c65225d6a9/securityRules/databricks-control-plane-to-worker-proxy",
+            "etag": "W/\"363e8d12-cbf9-4e60-8f4a-6f41d784ec17\"",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Required for Databricks control plane communication with worker nodes.",
+              "protocol": "tcp",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourcePortRanges": [
+                "*"
+              ],
+              "destinationPortRanges": [
+                "5557"
+              ],
+              "sourceAddressPrefixes": [
+                "AzureDatabricks"
+              ],
+              "destinationAddressPrefixes": [
+                "VirtualNetwork"
+              ]
+            },
+            "type": "Microsoft.Network/networkIntentPolicies/securityRules"
+          }
+        ],
+        "routes": [],
+        "serviceEndpointPolicyDefinitions": [],
+        "allowPrivateAddressSpaceOnly": false,
+        "disableServiceEndpoints": false,
+        "serviceEndpointsAllowedForPolicies": [],
+        "requireExactRouteMatch": false,
+        "disableNatGateway": false,
+        "disableDnsExfilTags": false,
+        "ownerId": "d9327919-6775-4843-9037-3fb0fb0473cb",
+        "subnets": [
+          {
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/TestRG/providers/Microsoft.Network/virtualNetworks/TestRG-vnet/subnets/adb-public"
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {}
+}

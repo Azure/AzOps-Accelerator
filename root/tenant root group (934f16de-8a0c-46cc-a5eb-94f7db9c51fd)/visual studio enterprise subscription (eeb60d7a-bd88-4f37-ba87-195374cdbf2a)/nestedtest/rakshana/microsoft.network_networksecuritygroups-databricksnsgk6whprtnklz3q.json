@@ -1,0 +1,343 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "AzOps"
+    }
+  },
+  "parameters": {},
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "databricksnsgk6whprtnklz3q",
+      "apiVersion": "2021-05-01",
+      "location": "eastus",
+      "tags": null,
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-worker-inbound",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/nestedtest/providers/Microsoft.Network/networkSecurityGroups/databricksnsgk6whprtnklz3q/securityRules/Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-worker-inbound",
+            "etag": "W/\"d79ecb90-0134-43c7-a67d-90adb5c944ca\"",
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Required for worker nodes communication within a cluster.",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "VirtualNetwork",
+              "destinationAddressPrefix": "VirtualNetwork",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Microsoft.Databricks-workspaces_UseOnly_databricks-control-plane-to-worker-ssh",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/nestedtest/providers/Microsoft.Network/networkSecurityGroups/databricksnsgk6whprtnklz3q/securityRules/Microsoft.Databricks-workspaces_UseOnly_databricks-control-plane-to-worker-ssh",
+            "etag": "W/\"d79ecb90-0134-43c7-a67d-90adb5c944ca\"",
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Required for Databricks control plane management of worker nodes.",
+              "protocol": "tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "22",
+              "sourceAddressPrefix": "AzureDatabricks",
+              "destinationAddressPrefix": "VirtualNetwork",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Microsoft.Databricks-workspaces_UseOnly_databricks-control-plane-to-worker-proxy",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/nestedtest/providers/Microsoft.Network/networkSecurityGroups/databricksnsgk6whprtnklz3q/securityRules/Microsoft.Databricks-workspaces_UseOnly_databricks-control-plane-to-worker-proxy",
+            "etag": "W/\"d79ecb90-0134-43c7-a67d-90adb5c944ca\"",
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Required for Databricks control plane communication with worker nodes.",
+              "protocol": "tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "5557",
+              "sourceAddressPrefix": "AzureDatabricks",
+              "destinationAddressPrefix": "VirtualNetwork",
+              "access": "Allow",
+              "priority": 102,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-databricks-webapp",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/nestedtest/providers/Microsoft.Network/networkSecurityGroups/databricksnsgk6whprtnklz3q/securityRules/Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-databricks-webapp",
+            "etag": "W/\"d79ecb90-0134-43c7-a67d-90adb5c944ca\"",
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Required for workers communication with Databricks Webapp.",
+              "protocol": "tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "443",
+              "sourceAddressPrefix": "VirtualNetwork",
+              "destinationAddressPrefix": "AzureDatabricks",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-sql",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/nestedtest/providers/Microsoft.Network/networkSecurityGroups/databricksnsgk6whprtnklz3q/securityRules/Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-sql",
+            "etag": "W/\"d79ecb90-0134-43c7-a67d-90adb5c944ca\"",
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Required for workers communication with Azure SQL services.",
+              "protocol": "tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3306",
+              "sourceAddressPrefix": "VirtualNetwork",
+              "destinationAddressPrefix": "Sql",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-storage",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/nestedtest/providers/Microsoft.Network/networkSecurityGroups/databricksnsgk6whprtnklz3q/securityRules/Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-storage",
+            "etag": "W/\"d79ecb90-0134-43c7-a67d-90adb5c944ca\"",
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Required for workers communication with Azure Storage services.",
+              "protocol": "tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "443",
+              "sourceAddressPrefix": "VirtualNetwork",
+              "destinationAddressPrefix": "Storage",
+              "access": "Allow",
+              "priority": 102,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-worker-outbound",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/nestedtest/providers/Microsoft.Network/networkSecurityGroups/databricksnsgk6whprtnklz3q/securityRules/Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-worker-outbound",
+            "etag": "W/\"d79ecb90-0134-43c7-a67d-90adb5c944ca\"",
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Required for worker nodes communication within a cluster.",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "VirtualNetwork",
+              "destinationAddressPrefix": "VirtualNetwork",
+              "access": "Allow",
+              "priority": 103,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-eventhub",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/nestedtest/providers/Microsoft.Network/networkSecurityGroups/databricksnsgk6whprtnklz3q/securityRules/Microsoft.Databricks-workspaces_UseOnly_databricks-worker-to-eventhub",
+            "etag": "W/\"d79ecb90-0134-43c7-a67d-90adb5c944ca\"",
+            "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Required for worker communication with Azure Eventhub services.",
+              "protocol": "tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "9093",
+              "sourceAddressPrefix": "VirtualNetwork",
+              "destinationAddressPrefix": "EventHub",
+              "access": "Allow",
+              "priority": 104,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          }
+        ],
+        "defaultSecurityRules": [
+          {
+            "name": "AllowVnetInBound",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/nestedtest/providers/Microsoft.Network/networkSecurityGroups/databricksnsgk6whprtnklz3q/defaultSecurityRules/AllowVnetInBound",
+            "etag": "W/\"d79ecb90-0134-43c7-a67d-90adb5c944ca\"",
+            "type": "Microsoft.Network/networkSecurityGroups/defaultSecurityRules",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Allow inbound traffic from all VMs in VNET",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "VirtualNetwork",
+              "destinationAddressPrefix": "VirtualNetwork",
+              "access": "Allow",
+              "priority": 65000,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "AllowAzureLoadBalancerInBound",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/nestedtest/providers/Microsoft.Network/networkSecurityGroups/databricksnsgk6whprtnklz3q/defaultSecurityRules/AllowAzureLoadBalancerInBound",
+            "etag": "W/\"d79ecb90-0134-43c7-a67d-90adb5c944ca\"",
+            "type": "Microsoft.Network/networkSecurityGroups/defaultSecurityRules",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Allow inbound traffic from azure load balancer",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "AzureLoadBalancer",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 65001,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "DenyAllInBound",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/nestedtest/providers/Microsoft.Network/networkSecurityGroups/databricksnsgk6whprtnklz3q/defaultSecurityRules/DenyAllInBound",
+            "etag": "W/\"d79ecb90-0134-43c7-a67d-90adb5c944ca\"",
+            "type": "Microsoft.Network/networkSecurityGroups/defaultSecurityRules",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Deny all inbound traffic",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 65500,
+              "direction": "Inbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "AllowVnetOutBound",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/nestedtest/providers/Microsoft.Network/networkSecurityGroups/databricksnsgk6whprtnklz3q/defaultSecurityRules/AllowVnetOutBound",
+            "etag": "W/\"d79ecb90-0134-43c7-a67d-90adb5c944ca\"",
+            "type": "Microsoft.Network/networkSecurityGroups/defaultSecurityRules",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Allow outbound traffic from all VMs to all VMs in VNET",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "VirtualNetwork",
+              "destinationAddressPrefix": "VirtualNetwork",
+              "access": "Allow",
+              "priority": 65000,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "AllowInternetOutBound",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/nestedtest/providers/Microsoft.Network/networkSecurityGroups/databricksnsgk6whprtnklz3q/defaultSecurityRules/AllowInternetOutBound",
+            "etag": "W/\"d79ecb90-0134-43c7-a67d-90adb5c944ca\"",
+            "type": "Microsoft.Network/networkSecurityGroups/defaultSecurityRules",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Allow outbound traffic from all VMs to Internet",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "Internet",
+              "access": "Allow",
+              "priority": 65001,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          },
+          {
+            "name": "DenyAllOutBound",
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/nestedtest/providers/Microsoft.Network/networkSecurityGroups/databricksnsgk6whprtnklz3q/defaultSecurityRules/DenyAllOutBound",
+            "etag": "W/\"d79ecb90-0134-43c7-a67d-90adb5c944ca\"",
+            "type": "Microsoft.Network/networkSecurityGroups/defaultSecurityRules",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "description": "Deny all outbound traffic",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 65500,
+              "direction": "Outbound",
+              "sourcePortRanges": [],
+              "destinationPortRanges": [],
+              "sourceAddressPrefixes": [],
+              "destinationAddressPrefixes": []
+            }
+          }
+        ],
+        "subnets": [
+          {
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/TestRG/providers/Microsoft.Network/virtualNetworks/TestRG-vnet/subnets/adb-public"
+          },
+          {
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/TestRG/providers/Microsoft.Network/virtualNetworks/TestRG-vnet/subnets/adb-private"
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {}
+}
