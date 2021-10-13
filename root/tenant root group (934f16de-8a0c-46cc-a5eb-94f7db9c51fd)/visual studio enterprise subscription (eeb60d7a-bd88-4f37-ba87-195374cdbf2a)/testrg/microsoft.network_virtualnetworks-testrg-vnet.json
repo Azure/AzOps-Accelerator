@@ -40,9 +40,6 @@
             "properties": {
               "addressPrefix": "10.0.2.0/26",
               "networkSecurityGroup": {},
-              "networkIntentPolicies": [
-                {}
-              ],
               "delegations": [
                 {
                   "name": "databricks-del-gklb6mbxeyo4u",
@@ -67,9 +64,6 @@
             "properties": {
               "addressPrefix": "10.0.1.0/26",
               "networkSecurityGroup": {},
-              "networkIntentPolicies": [
-                {}
-              ],
               "delegations": [
                 {
                   "name": "databricks-del-o76s6gtcdigii",

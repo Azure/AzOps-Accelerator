@@ -11,14 +11,14 @@
   "resources": [
     {
       "type": "Microsoft.Authorization/roleAssignments",
-      "name": "00810592-34ef-4d38-a7fb-e00fe1b8e8ba",
+      "name": "7b73caa6-c6e3-4e68-9e5c-e67146dc4865",
       "apiVersion": "2021-04-01-preview",
       "properties": {
         "DisplayName": "azops",
         "ObjectType": "ServicePrincipal",
         "PrincipalId": "f08c6357-29ba-4242-b605-20e9365b5335",
-        "RoleDefinitionId": "/providers/Microsoft.Authorization/RoleDefinitions/18d7d88d-d35e-4fb5-a5c3-7773c20a72d9",
-        "RoleDefinitionName": "User Access Administrator"
+        "RoleDefinitionId": "/providers/Microsoft.Authorization/RoleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635",
+        "RoleDefinitionName": "Owner"
       }
     }
   ],
