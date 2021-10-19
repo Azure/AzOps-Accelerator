@@ -4,7 +4,7 @@ function Install-SourceModule {
     param(
         $Repository,
 
-        $Branch = "rakss-Azops-ResourceDeletionTest"
+        $Branch = "sogangul-AzOps-ResourceDeletion"
     )
 
     process {
