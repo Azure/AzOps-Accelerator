@@ -102,10 +102,10 @@ jobs:
             Import-PSFConfig -Path settings.json -Schema MetaJson
             Initialize-AzOpsEnvironment
             $diff = Get-Content -Path /tmp/diff.txt
-            $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
             $module = Get-Module -Name AzOps
             if(Test-Path -Path "/tmp/diffdeletedfiles.txt")
             {
+              $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
               $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf })
             }
             else{
