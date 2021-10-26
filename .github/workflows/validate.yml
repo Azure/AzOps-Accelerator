@@ -80,7 +80,7 @@ jobs:
               git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
             fi
           else
-            echo "its empty"
+            exit 1
           fi
 
       #
