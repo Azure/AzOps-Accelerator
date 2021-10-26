@@ -49,14 +49,9 @@ jobs:
 
       - name: "Dependencies"
         run: |
-          . .github/scripts/Install.ps1
-          Install-SourceModule -Repository "SomilGanguly/AzOps" -Branch "sogangul-AzOps-ResourceDeletion"
-          $module = Get-Module -Name AzOps -ListAvailable
-          $data = Import-PowerShellDataFile -Path $module.Path
-          foreach ($dependency in $data.RequiredModules) {
-              Install-Module -Name $dependency.ModuleName -RequiredVersion $dependency.RequiredVersion -Force
-          }
+          Install-Module -Name "AzOps" -Force
         shell: pwsh
+
       #
       # Connect
       # Authenticate Azure context
@@ -98,7 +93,6 @@ jobs:
           if(Test-Path -Path "/tmp/diffdeletedfiles.txt")
           {
             $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
-            Write-Host $diffdeletedfiles
             $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf })
           }
           else{
