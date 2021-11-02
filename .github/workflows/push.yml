@@ -78,11 +78,16 @@ jobs:
       - name: "Diff"
         shell: bash
         run: |
-          echo $(git diff --name-status HEAD^ HEAD)
-          git diff --name-status HEAD^ HEAD > /tmp/diff.txt
-          if [ ! -z "$(git diff --diff-filter=D HEAD^ HEAD)" ]; then
-            echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r) 
-            git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
+          if [ ! -z "$(git diff --name-status HEAD^ HEAD)" ]; then
+            echo $(git diff --name-status HEAD^ HEAD)
+            git diff --name-status HEAD^ HEAD > /tmp/diff.txt
+            if [ ! -z "$(git diff --diff-filter=D HEAD^ HEAD)" ]; then
+              echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r)
+              git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
+            fi
+          else
+            echo "The validation pipeline failed because there is currently no change to be processed"
+            exit 1
           fi
 
       #
