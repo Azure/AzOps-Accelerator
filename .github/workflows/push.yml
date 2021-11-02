@@ -99,7 +99,7 @@ jobs:
         shell: pwsh
         run: |
           Initialize-AzOpsEnvironment
-          Import-PSFConfig -Path settings.json -Schema MetaJson
+          Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
           $diff = Get-Content -Path /tmp/diff.txt
           $module = Get-Module -Name AzOps
           if(Test-Path -Path "/tmp/diffdeletedfiles.txt") {

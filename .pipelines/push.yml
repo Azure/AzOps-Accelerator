@@ -114,7 +114,7 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            Import-PSFConfig -Path settings.json -Schema MetaJson
+            Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
             Initialize-AzOpsEnvironment
             $diff = Get-Content -Path /tmp/diff.txt
             $module = Get-Module -Name AzOps
