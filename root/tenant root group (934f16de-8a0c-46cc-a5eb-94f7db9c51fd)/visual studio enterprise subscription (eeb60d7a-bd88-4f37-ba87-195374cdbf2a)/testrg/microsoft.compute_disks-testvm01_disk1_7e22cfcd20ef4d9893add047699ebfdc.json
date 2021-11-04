@@ -12,7 +12,7 @@
     {
       "type": "Microsoft.Compute/disks",
       "name": "testvm01_disk1_7e22cfcd20ef4d9893add047699ebfdc",
-      "apiVersion": "2021-08-01",
+      "apiVersion": "2021-04-01",
       "location": "eastus",
       "tags": null,
       "properties": {
