@@ -12,7 +12,7 @@
     {
       "type": "Microsoft.Compute/virtualMachines",
       "name": "testvm01",
-      "apiVersion": "2021-11-01",
+      "apiVersion": "2021-07-01",
       "location": "eastus",
       "tags": null,
       "properties": {
