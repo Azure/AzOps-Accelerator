@@ -26,6 +26,11 @@
             "Core.SkipPolicy": false,
             "Core.SkipResource": true,
             "Core.SkipResourceGroup": false,
+            "Core.SkipResourceType": [
+                "Microsoft.PowerPlatform/accounts",
+                "Microsoft.PowerPlatform/enterprisePolicies",
+                "Microsoft.VSOnline/plans"
+            ],
             "Core.SkipRole": false,
             "Core.SubscriptionsToIncludeResourceGroups": "*",
             "Core.TemplateParameterFileSuffix": ".json",
