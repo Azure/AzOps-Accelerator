@@ -26,9 +26,6 @@
             "name": "default",
             "properties": {
               "addressPrefix": "10.0.0.0/24",
-              "ipConfigurations": [
-                {}
-              ],
               "delegations": [],
               "privateEndpointNetworkPolicies": "Enabled",
               "privateLinkServiceNetworkPolicies": "Enabled"
@@ -36,13 +33,13 @@
             "type": "Microsoft.Network/virtualNetworks/subnets"
           },
           {
-            "name": "adb-private",
+            "name": "adb-public",
             "properties": {
-              "addressPrefix": "10.0.2.0/26",
+              "addressPrefix": "10.0.1.0/26",
               "networkSecurityGroup": {},
               "delegations": [
                 {
-                  "name": "databricks-del-gklb6mbxeyo4u",
+                  "name": "databricks-del-o76s6gtcdigii",
                   "properties": {
                     "serviceName": "Microsoft.Databricks/workspaces",
                     "actions": [
@@ -60,13 +57,15 @@
             "type": "Microsoft.Network/virtualNetworks/subnets"
           },
           {
-            "name": "adb-public",
+            "name": "adb-private",
             "properties": {
-              "addressPrefix": "10.0.1.0/26",
+              "addressPrefix": "10.0.2.0/26",
               "networkSecurityGroup": {},
+              "routeTable": {},
+              "serviceEndpoints": [],
               "delegations": [
                 {
-                  "name": "databricks-del-o76s6gtcdigii",
+                  "name": "Microsoft.Databricks.workspaces",
                   "properties": {
                     "serviceName": "Microsoft.Databricks/workspaces",
                     "actions": [
