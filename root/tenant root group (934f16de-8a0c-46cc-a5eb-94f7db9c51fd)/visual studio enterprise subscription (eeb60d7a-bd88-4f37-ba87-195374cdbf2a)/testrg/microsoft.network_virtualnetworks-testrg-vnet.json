@@ -61,7 +61,6 @@
             "properties": {
               "addressPrefix": "10.0.2.0/26",
               "networkSecurityGroup": {},
-              "routeTable": {},
               "serviceEndpoints": [],
               "delegations": [
                 {
