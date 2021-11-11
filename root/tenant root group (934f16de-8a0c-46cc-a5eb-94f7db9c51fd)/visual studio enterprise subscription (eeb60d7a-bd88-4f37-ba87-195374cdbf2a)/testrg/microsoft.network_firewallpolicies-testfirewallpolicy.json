@@ -25,7 +25,12 @@
           "ipAddresses": []
         },
         "childPolicies": [],
-        "ruleCollectionGroups": [],
+        "ruleCollectionGroups": [
+          {
+            "id": "/subscriptions/eeb60d7a-bd88-4f37-ba87-195374cdbf2a/resourceGroups/TestRG/providers/Microsoft.Network/firewallPolicies/testfirewallpolicy/ruleCollectionGroups/testruleCollectionGroup",
+            "resourceType": "NotDefined"
+          }
+        ],
         "firewalls": []
       }
     }
