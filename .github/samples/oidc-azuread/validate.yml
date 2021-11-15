@@ -1,0 +1,135 @@
+---
+name: "AzOps - Validate"
+
+on:
+  #
+  # Pull Request
+  # Upon the creation of a new Pull Request in the root folder
+  # this workflow will execute.
+  #
+
+  pull_request:
+    paths:
+      - "root/**"
+
+env:
+  #
+  # Credentials
+  #
+
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  validate:
+    #
+    # Validate
+    #
+
+    name: "Validate"
+    runs-on: ubuntu-20.04
+    environment: prod
+
+    steps:
+      #
+      # Checkout
+      # Checks-out the repository
+      #
+
+      - name: "Checkout"
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      #
+      # Dependencies
+      # Install required runtime modules
+      #
+
+      - name: "Dependencies"
+        shell: pwsh
+        run: |
+          Install-Module -Name "AzOps" -Force
+
+      - name: "Install CLI-beta (for OIDC federated credentials support)"
+        run: |
+          cd ../..
+          CWD="$(pwd)"
+          python3 -m venv oidc-venv
+          . oidc-venv/bin/activate
+          echo "activated environment"
+          python3 -m pip install --upgrade pip
+          echo "started installing cli beta"
+          pip install -q --extra-index-url https://azcliprod.blob.core.windows.net/beta/simple/ azure-cli
+          echo "installed cli beta"
+          echo "$CWD/oidc-venv/bin" >> $GITHUB_PATH
+      #
+      # Connect
+      # Authenticate Azure context
+      #
+
+      - name: OIDC Login to Azure Public Cloud with AzPowershell (enableAzPSSession true)
+        uses: azure/login@v1.4.0
+        with:
+          client-id: ${{ env.ARM_CLIENT_ID}}
+          tenant-id: ${{ env.ARM_TENANT_ID }}
+          subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+      #
+      # Diff
+      # List index changes
+      #
+
+      - name: "Diff"
+        id: diff
+        shell: bash
+        run: |
+          if [ ! -z "$(git diff --name-status HEAD^ HEAD)" ]; then
+            echo $(git diff --name-status HEAD^ HEAD)
+            git diff --name-status HEAD^ HEAD > /tmp/diff.txt
+            if [ ! -z "$(git diff --diff-filter=D HEAD^ HEAD)" ]; then
+              echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r)
+              git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
+            fi
+          else
+            echo "The validation pipeline failed because there is currently no change to be processed"
+            exit 1
+          fi
+
+      #
+      # Validate
+      #
+
+      - name: "Validate"
+        shell: pwsh
+        run: |
+          Initialize-AzOpsEnvironment
+          Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
+          $diff = Get-Content -Path /tmp/diff.txt
+          $module = Get-Module -Name AzOps
+          if(Test-Path -Path "/tmp/diffdeletedfiles.txt")
+          {
+            $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
+            $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf })
+          }
+          else{
+            $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -WhatIf })
+          }
+          Get-Job | Remove-Job -Force
+
+      #
+      # Results
+      #
+
+      - name: "Results"
+        shell: bash
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/OUTPUT.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
