@@ -157,15 +157,9 @@ jobs:
       #
 
       - name: "Dependencies"
-        run: |
-          . .github/scripts/Install.ps1
-          Install-SourceModule -Repository "SomilGanguly/AzOps" -Branch "sogangul-AzOps-ResourceDeletion"
-          $module = Get-Module -Name AzOps -ListAvailable
-          $data = Import-PowerShellDataFile -Path $module.Path
-          foreach ($dependency in $data.RequiredModules) {
-              Install-Module -Name $dependency.ModuleName -RequiredVersion $dependency.RequiredVersion -Force
-          }
         shell: pwsh
+        run: |
+          Install-Module -Name "AzOps" -Force
 
       #
       # Connect
@@ -186,7 +180,7 @@ jobs:
       - name: "Initialize"
         shell: pwsh
         run: |
-          Import-PSFConfig -Path settings.json -Schema MetaJson
+          Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
           if ($env:ACTION -eq "Enterprise-Scale Deployment") {
             Set-PSFConfig -FullName AzOps.Core.SkipResource -Value $false
           }
