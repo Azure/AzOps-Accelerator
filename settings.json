@@ -27,8 +27,10 @@
             "Core.SkipResource": true,
             "Core.SkipResourceGroup": false,
             "Core.SkipResourceType": [
+                "microsoft.alertsmanagement/smartDetectorAlertRules",
                 "Microsoft.PowerPlatform/accounts",
                 "Microsoft.PowerPlatform/enterprisePolicies",
+                "microsoft.visualstudio/account",
                 "Microsoft.VSOnline/plans"
             ],
             "Core.SkipRole": false,
