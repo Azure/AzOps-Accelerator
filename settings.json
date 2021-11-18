@@ -45,7 +45,7 @@
             "AzOps.Core.State": "%GITHUB_WORKSPACE%/root"
         },
         "PSFramework": {
-            "Message.Info.Maximum": 9
+            "Message.Info.Maximum": 3
         }
     }
 }
