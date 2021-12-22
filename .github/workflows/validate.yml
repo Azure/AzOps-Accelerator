@@ -112,6 +112,10 @@ jobs:
       - name: "Results"
         shell: bash
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/OUTPUT.md
+          if [ -f /tmp/OUTPUT.md ]; then
+            gh pr comment ${{ github.event.pull_request.number }} --body-file /tmp/OUTPUT.md
+          else
+            echo "There are no results, so no comments are posted. For further information please look into the validate step."
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
