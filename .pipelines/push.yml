@@ -71,6 +71,22 @@ jobs:
         persistCredentials: true
 
       #
+      # Get Latest AzOps version
+      # Query PowerShell Gallery for the latest AzOps version
+      # to be used as cache key if no version is specified
+      #
+
+      - task: PowerShell@2
+        displayName: "Get Latest AzOps version"
+        condition: eq(variables['AZOPS_MODULE_VERSION'], '')
+        inputs:
+          targetType: "inline"
+          script: |
+            $latestVersionUri = "https://www.powershellgallery.com/api/v2/FindPackagesById()?id='AzOps'&`$filter=IsLatestVersion"
+            $latestVersionId = (Invoke-RestMethod $latestVersionUri).properties.NormalizedVersion
+            Write-Host "##vso[task.setvariable variable=AZOPS_MODULE_VERSION;]$latestVersionId"
+
+      #
       # Cache Dependencies
       # Cache dependencies if version has not changed
       #
