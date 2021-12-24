@@ -323,14 +323,24 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            az repos pr create \
+            # Open new PR
+            PROut=$(
+              az repos pr create \
               --title "$(pull_request)" \
               --source-branch "$(branch)" \
               --target-branch "main" \
               --squash true \
               --delete-source-branch true \
               --auto-complete true \
-              --bypass-policy true \
-              --bypass-policy-reason "Automated pull request"
+            );
+
+            # Get PR ID and check status
+            PRid=$(echo $PROut | jq -r '.pullRequestId');
+            PRStatus=$(az repos pr show --id $PRid --organization "https://dev.azure.com/advaniase" | jq .status);
+
+            # If PR is not completed, then complete it bypassing policy
+            if [ $PRStatus == "\"active\"" ]; then
+              az repos pr update --status completed --id $PRid --bypass-policy true --bypass-policy-reason "Automated pull request" --organization "https://dev.azure.com/advaniase" > /dev/null 2>&1
+            fi;
         env:
           AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
