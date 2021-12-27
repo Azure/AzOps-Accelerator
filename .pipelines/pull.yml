@@ -47,14 +47,27 @@ variables:
   # Credentials
   # This reference is to the Variable Group which needs
   # to be created which will contain the following values.
+  # Set AZOPS_MODULE_VERSION to the desired version of the 
+  # AzOps Module to enable version pinning and caching.
   #
   # - ARM_TENANT_ID
   # - ARM_SUBSCRIPTION_ID
   # - ARM_CLIENT_ID
   # - ARM_CLIENT_SECRET
+  # - AZOPS_MODULE_VERSION   
   #
 
   - group: credentials
+
+  #
+  # modulesFolder
+  # To enable caching of PowerShell modules between
+  # runs, the modules are stored in a modules folder
+  # that can be cached.
+  #
+
+  - name: modulesFolder
+    value: '$(System.DefaultWorkingDirectory)/Modules'
 
   #
   # Folder Name
@@ -156,16 +169,58 @@ jobs:
             git checkout -b $(branch)
 
       #
+      # Get Latest AzOps version
+      # Query PowerShell Gallery for the latest AzOps version
+      # to be used as cache key if no version is specified
+      #
+
+      - task: PowerShell@2
+        displayName: "Get Latest AzOps version"
+        condition: eq(variables['AZOPS_MODULE_VERSION'], '')
+        inputs:
+          targetType: "inline"
+          script: |
+            $latestVersionUri = "https://www.powershellgallery.com/api/v2/FindPackagesById()?id='AzOps'&`$filter=IsLatestVersion"
+            $latestVersionId = (Invoke-RestMethod $latestVersionUri).properties.NormalizedVersion
+            Write-Host "##vso[task.setvariable variable=AZOPS_MODULE_VERSION;]$latestVersionId"
+
+      #
+      # Cache Dependencies
+      # Cache dependencies if version has not changed
+      #
+
+      - task: Cache@2
+        displayName: Cache AzOps module
+        condition: ne(variables['AZOPS_MODULE_VERSION'], '')
+        # This task will restore modules from cache if key is found.
+        inputs:
+          key:  '"AzOpsModule" | "$(AZOPS_MODULE_VERSION)"'
+          path: $(modulesFolder)
+          cacheHitVar: AzOpsModule_IsCached
+
+      #
       # Dependencies
       # Install required runtime modules
       #
 
       - task: PowerShell@2
         displayName: "Dependencies"
+        condition: or(eq(variables['AZOPS_MODULE_VERSION'], ''), ne(variables['AzOpsModule_IsCached'], 'true'))
         inputs:
           targetType: "inline"
           script: |
-            Install-Module -Name AzOps -Force
+            if(-not (Test-Path -Path '$(modulesFolder)')) {
+              mkdir '$(modulesFolder)'
+            }
+            $params = @{
+              Name            = 'AzOps'
+              Path            = '$(modulesFolder)'
+              Force           = $true
+            }
+            if('$(AZOPS_MODULE_VERSION)') {
+              $params.RequiredVersion = '$(AZOPS_MODULE_VERSION)'
+            }
+            Save-Module @params
 
       #
       # Connect
@@ -177,6 +232,7 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
+            $Env:PSModulePath = $Env:PSModulePath, '$(modulesFolder)' -join [IO.Path]::PathSeparator
             $credential = New-Object PSCredential -ArgumentList $(ARM_CLIENT_ID), (ConvertTo-SecureString -String $(ARM_CLIENT_SECRET) -AsPlainText -Force)
             Connect-AzAccount -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
 
@@ -190,6 +246,7 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
+            $Env:PSModulePath = $Env:PSModulePath, '$(modulesFolder)' -join [IO.Path]::PathSeparator
             Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
             Invoke-AzOpsPull -Rebuild
             Get-Job | Remove-Job -Force
@@ -204,7 +261,7 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            STATUS=$(git status --short)
+            STATUS=$(git status --short $(folder))
             echo $STATUS
             if [ -z "$STATUS" ]
             then
@@ -266,12 +323,24 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            az repos pr create \
+            # Open new PR
+            PROut=$(
+              az repos pr create \
               --title "$(pull_request)" \
               --source-branch "$(branch)" \
               --target-branch "main" \
               --squash true \
               --delete-source-branch true \
-              --auto-complete true
+              --auto-complete true \
+            );
+
+            # Get PR ID and check status
+            PRid=$(echo $PROut | jq -r '.pullRequestId');
+            PRStatus=$(az repos pr show --id $PRid --organization "https://dev.azure.com/advaniase" | jq .status);
+
+            # If PR is not completed, then complete it bypassing policy
+            if [ $PRStatus == "\"active\"" ]; then
+              az repos pr update --status completed --id $PRid --bypass-policy true --bypass-policy-reason "Automated pull request" --organization "https://dev.azure.com/advaniase" > /dev/null 2>&1
+            fi;
         env:
           AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
