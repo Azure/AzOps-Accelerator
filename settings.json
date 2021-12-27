@@ -36,7 +36,11 @@
             "Core.SkipRole": false,
             "Core.SubscriptionsToIncludeResourceGroups": "*",
             "Core.TemplateParameterFileSuffix": ".json",
-            "Core.ThrottleLimit": 10
+            "Core.ThrottleLimit": 10,
+            "Core.WhatifExcludedChangeTypes":[
+                "NoChange",
+                "Ignore"
+            ]
         },
         "|AzureDevOps": {
             "!Condition": "EnvAzDevPipeline",
