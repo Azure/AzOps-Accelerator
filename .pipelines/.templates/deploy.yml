@@ -1,0 +1,62 @@
+parameters:
+  - name: deploy
+    type: boolean
+    default: false
+
+  - name: modulesFolder
+    type: string
+    default: '$(System.DefaultWorkingDirectory)/Modules'
+
+steps:
+
+    #
+    # Diff
+    # List index changes
+    #
+
+  - task: Bash@3
+    displayName: "Diff"
+    inputs:
+      targetType: "inline"
+      script: |
+        if [ ! -z "$(git diff --name-status HEAD^ HEAD)" ]; then
+          echo $(git diff --name-status HEAD^ HEAD)
+          git diff --name-status HEAD^ HEAD > /tmp/diff.txt
+          if [ ! -z "$(git diff --diff-filter=D HEAD^ HEAD)" ]; then
+          echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r)
+          git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
+          fi
+        else
+          echo "The validation pipeline failed because there is currently no change to be processed"
+          exit 1
+        fi
+
+  #
+  # Validate or Deploy
+  # If parameter "deploy" is set to true, then deploy the changes,
+  # otherwise validate the changes.
+  #
+
+  - task: PowerShell@2
+    ${{ if not(eq(parameters.deploy, 'true')) }}:
+      displayName: "Validate"
+    ${{ else }}:
+      displayName: "Deploy"
+    inputs:
+      targetType: "inline"
+      script: |
+        $Env:PSModulePath = $Env:PSModulePath, '$(modulesFolder)' -join [IO.Path]::PathSeparator
+        $RunWhatIf = -not ('${{parameters.deploy}}' -eq 'true')
+        Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
+        Initialize-AzOpsEnvironment
+        $diff = Get-Content -Path /tmp/diff.txt
+        $module = Get-Module -Name AzOps
+        if(Test-Path -Path "/tmp/diffdeletedfiles.txt")
+        {
+          $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
+          $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf:$RunWhatIf })
+        }
+        else{
+          $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -WhatIf:$RunWhatIf })
+        }
+        Get-Job | Remove-Job -Force
