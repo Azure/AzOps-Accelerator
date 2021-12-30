@@ -63,7 +63,7 @@ jobs:
       # Deploy any templates changed in the last commit
       #
 
-      - template: .templates/deploy.yml
+      - template: .templates/validate-deploy.yml
         parameters:
           deploy: true
           modulesFolder: ${{ variables['modulesFolder'] }}
