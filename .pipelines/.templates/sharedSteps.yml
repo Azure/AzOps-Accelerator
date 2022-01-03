@@ -1,0 +1,100 @@
+parameters:
+
+  - name: AZOPS_MODULE_VERSION
+    type: string
+    default: ''
+
+  - name: modulesFolder
+    type: string
+    default: '$(System.DefaultWorkingDirectory)/Modules'
+
+  - name: ARM_CLIENT_ID
+    type: string
+
+  - name: ARM_CLIENT_SECRET
+    type: string
+
+  - name: ARM_SUBSCRIPTION_ID
+    type: string
+
+  - name: ARM_TENANT_ID
+    type: string
+
+steps:
+
+  #
+  # Checkout
+  # Checks-out the repository
+  #
+
+  - checkout: self
+    fetchDepth: 0
+    persistCredentials: true
+
+  #
+  # Get Latest AzOps version
+  # Query PowerShell Gallery for the latest AzOps version
+  # to be used as cache key if no version is specified
+  #
+
+  - task: PowerShell@2
+    displayName: "Get Latest AzOps version"
+    condition: eq(variables['AZOPS_MODULE_VERSION'], '')
+    inputs:
+      targetType: "inline"
+      script: |
+        $latestVersionUri = "https://www.powershellgallery.com/api/v2/FindPackagesById()?id='AzOps'&`$filter=IsLatestVersion"
+        $latestVersionId = (Invoke-RestMethod $latestVersionUri).properties.NormalizedVersion
+        Write-Host "##vso[task.setvariable variable=AZOPS_MODULE_VERSION;]$latestVersionId"
+
+  #
+  # Cache Dependencies
+  # Cache dependencies if version has not changed
+  #
+
+  - task: Cache@2
+    displayName: Cache AzOps module
+    condition: ne(variables['AZOPS_MODULE_VERSION'], '')
+    # This task will restore modules from cache if key is found.
+    inputs:
+      key:  '"AzOpsModule" | "$(AZOPS_MODULE_VERSION)"'
+      path: $(modulesFolder)
+      cacheHitVar: AzOpsModule_IsCached
+
+  #
+  # Dependencies
+  # Install required runtime modules
+  #
+
+  - task: PowerShell@2
+    displayName: "Dependencies"
+    condition: or(eq(variables['AZOPS_MODULE_VERSION'], ''), ne(variables['AzOpsModule_IsCached'], 'true'))
+    inputs:
+      targetType: "inline"
+      script: |
+        if(-not (Test-Path -Path '$(modulesFolder)')) {
+          mkdir '$(modulesFolder)'
+        }
+        $params = @{
+          Name            = 'AzOps'
+          Path            = '$(modulesFolder)'
+          Force           = $true
+        }
+        if('$(AZOPS_MODULE_VERSION)') {
+          $params.RequiredVersion = '$(AZOPS_MODULE_VERSION)'
+        }
+        Save-Module @params
+
+  #
+  # Connect
+  # Authenticate Azure context
+  #
+
+  - task: PowerShell@2
+    displayName: "Connect"
+    inputs:
+      targetType: "inline"
+      script: |
+        $Env:PSModulePath = $Env:PSModulePath, '$(modulesFolder)' -join [IO.Path]::PathSeparator
+        $credential = New-Object PSCredential -ArgumentList $(ARM_CLIENT_ID), (ConvertTo-SecureString -String $(ARM_CLIENT_SECRET) -AsPlainText -Force)
+        Connect-AzAccount -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
