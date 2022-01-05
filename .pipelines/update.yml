@@ -102,7 +102,7 @@ jobs:
           workingDirectory: ".."
           script: |
             test -f ./origin/.pipelines/patch.yml && rm -f ./origin/.pipelines/patch.yml
-            cp -R ./upstream/.pipelines/* ./origin/.pipelines/
+            cp -R -v ./upstream/.pipelines/ ./origin/
 
       #
       # Commit
