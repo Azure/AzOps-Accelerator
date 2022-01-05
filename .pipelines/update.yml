@@ -119,10 +119,10 @@ jobs:
             echo $DIFF
             if [ -n "$DIFF" ]
             then
-              git checkout -b $(branch)
+              git checkout -b "$(branch)"
               git add .pipelines/
-              git commit -m $(commit)
-              git push origin $(branch) -f
+              git commit -m "$(commit)"
+              git push origin "$(branch)" -f
               echo "##vso[task.setvariable variable=state]continue"
             fi
 
