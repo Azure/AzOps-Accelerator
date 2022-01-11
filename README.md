@@ -1,6 +1,6 @@
 # AzOps Accelerator
 
-This template repository helps you get started with the [AzOps](https://github.com/Azure/AzOps) integrated CI/CD solution. It showcases how the AzOps can be used in Azure DevOps and GitHub to pull and push Azure policies. 
+This template repository helps you get started with the [AzOps](https://github.com/Azure/AzOps) integrated CI/CD solution. It showcases how the AzOps can be used in Azure DevOps and GitHub to pull and push Azure resources such as policyDefinitions, policyAssignments and roleAssignments. 
 
 ### Documentation
 
