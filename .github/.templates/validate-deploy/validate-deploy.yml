@@ -1,0 +1,50 @@
+on:
+  workflow_call:
+    inputs:
+      deploy:
+        default: false
+
+runs:
+  using: 'composite'
+  steps:
+      - name: "Diff"
+        shell: bash
+        run: |
+          if [ ! -z "$(git diff --name-status HEAD^ HEAD)" ]; then
+            echo $(git diff --name-status HEAD^ HEAD)
+            git diff --name-status HEAD^ HEAD > /tmp/diff.txt
+            if [ ! -z "$(git diff --diff-filter=D HEAD^ HEAD)" ]; then
+              echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r)
+              git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
+            fi
+          else
+            echo "The validation pipeline failed because there is currently no change to be processed"
+            exit 1
+          fi
+
+      #
+      # Deploy
+      # Initial deployment of any index changes
+      #
+
+        
+      - name: "Validate"
+        if: ${{ input.deploy == 'false' }}
+      - name: "Deploy"
+        if: ${{ input.deploy == 'true' }}
+        shell: pwsh
+        run: |
+          Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
+          Initialize-AzOpsEnvironment
+          $RunWhatIf = -not ('${{inputs.deploy}}' -eq 'true')
+          $diff = Get-Content -Path /tmp/diff.txt
+          $module = Get-Module -Name AzOps
+          if(Test-Path -Path "/tmp/diffdeletedfiles.txt")
+          {
+            $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
+            $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf:$RunWhatIf })
+          }
+          else{
+            $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -WhatIf:$RunWhatIf })
+          }
+          Get-Job | Remove-Job -Force

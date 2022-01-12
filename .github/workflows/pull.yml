@@ -129,7 +129,10 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-
+        
+      - name: 'Run sharedsteps'
+        uses: ./.github/.templates/sharedSteps
+          
       #
       # Configure
       # Set global options
@@ -156,21 +159,21 @@ jobs:
       # Install required runtime modules
       #
 
-      - name: "Dependencies"
-        shell: pwsh
-        run: |
-          Install-Module -Name "AzOps" -Force
+      # - name: "Dependencies"
+      #   shell: pwsh
+      #   run: |
+      #     Install-Module -Name "AzOps" -Force
 
-      #
-      # Connect
-      # Authenticate Azure context
-      #
+      # #
+      # # Connect
+      # # Authenticate Azure context
+      # #
 
-      - name: "Connect"
-        shell: pwsh
-        run: |
-          $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
-          Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
+      # - name: "Connect"
+      #   shell: pwsh
+      #   run: |
+      #     $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
+      #     Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
 
       #
       # Initialize
