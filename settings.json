@@ -25,7 +25,7 @@
             "Core.PartialMgDiscoveryRoot": [],
             "Core.SkipPolicy": false,
             "Core.SkipResource": true,
-            "Core.SkipExtendedChildResourcesDiscovery": true,
+            "Core.SkipChildResource": true,
             "Core.SkipResourceGroup": false,
             "Core.SkipResourceType": [
                 "microsoft.alertsmanagement/smartDetectorAlertRules",
