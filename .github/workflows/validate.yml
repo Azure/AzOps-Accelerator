@@ -41,79 +41,27 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-
       #
-      # Dependencies
-      # Install required runtime modules
+      # Shared steps
+      # Include shared steps from the 'shared.yml' file
+      # to not have to repeat them in every pipeline.
       #
 
-      # - name: "Dependencies"
-      #   run: |
-      #     Install-Module -Name "AzOps" -Force
-      #   shell: pwsh
-
-      # #
-      # # Connect
-      # # Authenticate Azure context
-      # #
-
-      # - name: "Connect"
-      #   shell: pwsh
-      #   run: |
-      #     $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
-      #     Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
-      - name: 'Run sharedsteps'
+      - name: 'Sharedsteps'
         uses: ./.github/.templates/sharedSteps
+   
       #
-      # Diff
-      # List index changes
+      # Validate
+      # Run what-if deployment on any templates changed
+      # in the last commit
       #
-      - name: "Checkout"
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      
-      - name: 'Run validate deploy'
+
+      - name: 'Validate'
         with:
           deploy: false
+          name: 'Validate'
         uses: ./.github/.templates/validate-deploy
-      # - name: "Diff"
-      #   id: diff
-      #   shell: bash
-      #   run: |
-      #     if [ ! -z "$(git diff --name-status HEAD^ HEAD)" ]; then
-      #       echo $(git diff --name-status HEAD^ HEAD)
-      #       git diff --name-status HEAD^ HEAD > /tmp/diff.txt
-      #       if [ ! -z "$(git diff --diff-filter=D HEAD^ HEAD)" ]; then
-      #         echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r)
-      #         git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
-      #       fi
-      #     else
-      #       echo "The validation pipeline failed because there is currently no change to be processed"
-      #       exit 1
-      #     fi
-
-      # #
-      # # Validate
-      # #
-
-      # - name: "Validate"
-      #   shell: pwsh
-      #   run: |
-      #     Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
-      #     Initialize-AzOpsEnvironment
-      #     $diff = Get-Content -Path /tmp/diff.txt
-      #     $module = Get-Module -Name AzOps
-      #     if(Test-Path -Path "/tmp/diffdeletedfiles.txt")
-      #     {
-      #       $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
-      #       $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf })
-      #     }
-      #     else{
-      #       $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -WhatIf })
-      #     }
-      #     Get-Job | Remove-Job -Force
-
+      
       #
       # Results
       #

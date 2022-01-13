@@ -3,6 +3,8 @@ on:
     inputs:
       deploy:
         default: false
+      name:
+        required: true
 
 runs:
   using: 'composite'
@@ -27,11 +29,7 @@ runs:
       # Initial deployment of any index changes
       #
 
-        
-      - name: "Validate"
-        if: ${{ input.deploy == 'false' }}
-      - name: "Deploy"
-        if: ${{ input.deploy == 'true' }}
+      - name: ${{ input.name }}
         shell: pwsh
         run: |
           Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException

@@ -50,68 +50,21 @@ jobs:
           fetch-depth: 0
 
       #
-      # Dependencies
-      # Install required runtime modules
+      # Shared steps
+      # Include shared steps from the 'action.yml' file
+      # to not have to repeat them in every pipeline.
       #
 
-      - name: 'Run sharedsteps'
+      - name: 'Sharedsteps'
         uses: ./.github/.templates/sharedSteps
-      # - name: "Dependencies"
-      #   shell: pwsh
-      #   run: |
-      #     Install-Module -Name "AzOps" -Force
 
-      # #
-      # # Connect
-      # # Authenticate Azure context
-      # #
-
-      # - name: "Connect"
-      #   shell: pwsh
-      #   run: |
-      #     $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
-      #     Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
-      - name: 'Run validate deploy'
+      #
+      # Deploy
+      # Deploy any templates changed in the last commit
+      #
+     
+      - name: 'Deploy'
         with:
           deploy: true
+          name: 'Deploy'
         uses: ./.github/.templates/validate-deploy
-      #
-      # Diff
-      # List index changes
-      #
-
-      # - name: "Diff"
-      #   shell: bash
-      #   run: |
-      #     if [ ! -z "$(git diff --name-status HEAD^ HEAD)" ]; then
-      #       echo $(git diff --name-status HEAD^ HEAD)
-      #       git diff --name-status HEAD^ HEAD > /tmp/diff.txt
-      #       if [ ! -z "$(git diff --diff-filter=D HEAD^ HEAD)" ]; then
-      #         echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r)
-      #         git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
-      #       fi
-      #     else
-      #       echo "The validation pipeline failed because there is currently no change to be processed"
-      #       exit 1
-      #     fi
-
-      # #
-      # # Deploy
-      # # Initial deployment of any index changes
-      # #
-
-      # - name: "Deploy"
-      #   shell: pwsh
-      #   run: |
-      #     Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
-      #     Initialize-AzOpsEnvironment
-      #     $diff = Get-Content -Path /tmp/diff.txt
-      #     $module = Get-Module -Name AzOps
-      #     if(Test-Path -Path "/tmp/diffdeletedfiles.txt") {
-      #       $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
-      #       $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles })
-      #     }
-      #     else {
-      #       $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff })
-      #     }
-      #     Get-Job | Remove-Job -Force
