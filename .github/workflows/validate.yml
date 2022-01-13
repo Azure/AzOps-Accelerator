@@ -41,6 +41,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          
       #
       # Shared steps
       # Include shared steps from the 'shared.yml' file
