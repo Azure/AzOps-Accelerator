@@ -1,6 +1,6 @@
 # AzOps Accelerator
 
-This template repository is for getting started with the AzOps integrated CI/CD solution.
+This template repository helps you get started with the [AzOps](https://github.com/Azure/AzOps) integrated CI/CD solution. It showcases how the AzOps can be used in Azure DevOps and GitHub to pull and push Azure resources such as policyDefinitions, policyAssignments and roleAssignments. 
 
 ### Documentation
 
@@ -19,6 +19,8 @@ Please be aware the Wiki has been migrated to the AzOps repository.
 
 ### Samples
 
+Follow the samples below to get started:
+
 * [GitHub Actions](https://github.com/Azure/AzOps-Accelerator/tree/main/.github/)
 * [Azure Pipelines](https://github.com/Azure/AzOps-Accelerator/tree/main/.pipelines/)
 
@@ -28,7 +30,7 @@ If you find any bugs when using the Accelerator, please file an issue on our [Az
 
 ### Contributing
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
+This project welcomes contributions and suggestions. Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
 the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
 
@@ -37,7 +39,7 @@ a CLA and decorate the PR appropriately (e.g., status check, comment). Simply fo
 provided by the bot. You will only need to do this once across all repos using our CLA.
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
+For more information, see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 ### Trademarks
