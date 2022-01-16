@@ -106,5 +106,5 @@ steps:
           $credential = New-Object PSCredential -ArgumentList $clientId, (ConvertTo-SecureString -String $clientSecret -AsPlainText -Force)
           Connect-AzAccount -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
         } else {        
-          Connect-AzAccount -TenantId $(ARM_TENANT_ID) -SubscriptionId $(ARM_SUBSCRIPTION_ID) -Identity
+          Connect-AzAccount -TenantId $(ARM_TENANT_ID) -Identity -SubscriptionId $(ARM_SUBSCRIPTION_ID) 
         }
