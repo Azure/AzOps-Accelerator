@@ -26,7 +26,7 @@ Follow the samples below to get started:
 
 ### Issues
 
-If you find any bugs when using the Accelerator, please file an issue on our [AzOps issue](https://github.com/azure/azops/issues) page.
+If you find any bugs when using the Accelerator, please file an issue on our [AzOps issue](https://github.com/azure/azops/issues) page. a
 
 ### Contributing
 
