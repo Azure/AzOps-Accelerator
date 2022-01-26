@@ -1,3 +1,5 @@
+name: "Validate or Deploy"
+
 on:
   workflow_call:
     inputs:
@@ -34,7 +36,7 @@ runs:
       # Initial deployment of any index changes
       #
 
-      - name: ${{ input.name }}
+      - name: ${{ inputs.name }}
         shell: pwsh
         run: |
           Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException

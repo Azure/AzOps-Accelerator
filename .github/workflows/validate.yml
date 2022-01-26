@@ -21,6 +21,16 @@ env:
   ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  AZOPS_MODULE_VERSION: ${{ secrets.AZOPS_MODULE_VERSION }}
+
+  #
+  # modulesFolder
+  # To enable caching of PowerShell modules between
+  # runs, the modules are stored in a modules folder
+  # that can be cached.
+  #
+  
+  modulesFolder: "~/.local/share/powershell/Modules"
 
 jobs:
   validate:
