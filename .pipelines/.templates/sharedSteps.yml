@@ -10,9 +10,11 @@ parameters:
 
   - name: ARM_CLIENT_ID
     type: string
+    default: ''
 
   - name: ARM_CLIENT_SECRET
     type: string
+    default: ''
 
   - name: ARM_SUBSCRIPTION_ID
     type: string
@@ -88,6 +90,8 @@ steps:
   #
   # Connect
   # Authenticate Azure context
+  # If no value is set for ARM_CLIENT_ID connect will try
+  # to use a Managed Identity. 
   #
 
   - task: PowerShell@2
@@ -95,6 +99,12 @@ steps:
     inputs:
       targetType: "inline"
       script: |
-        $Env:PSModulePath = $Env:PSModulePath, '$(modulesFolder)' -join [IO.Path]::PathSeparator
-        $credential = New-Object PSCredential -ArgumentList $(ARM_CLIENT_ID), (ConvertTo-SecureString -String $(ARM_CLIENT_SECRET) -AsPlainText -Force)
-        Connect-AzAccount -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
+        $Env:PSModulePath = $Env:PSModulePath, '$(modulesFolder)' -join [IO.Path]::PathSeparator  
+        if('$(ARM_CLIENT_ID)') {
+          $clientId='$(ARM_CLIENT_ID)'
+          $clientSecret='$(ARM_CLIENT_SECRET)'
+          $credential = New-Object PSCredential -ArgumentList $clientId, (ConvertTo-SecureString -String $clientSecret -AsPlainText -Force)
+          Connect-AzAccount -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
+        } else {        
+          Connect-AzAccount -TenantId $(ARM_TENANT_ID) -Identity -SubscriptionId $(ARM_SUBSCRIPTION_ID) 
+        }
