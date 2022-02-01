@@ -58,8 +58,8 @@ jobs:
       # to not have to repeat them in every pipeline.
       #
 
-      - name: 'Sharedsteps'
-        uses: ./.github/.templates/sharedSteps
+      - name: 'Shared steps'
+        uses: ./.github/actions/sharedSteps
    
       #
       # Validate
@@ -71,7 +71,7 @@ jobs:
         with:
           deploy: false
           name: 'Validate'
-        uses: ./.github/.templates/validate-deploy
+        uses: ./.github/actions/validate-deploy
       
       #
       # Results

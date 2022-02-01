@@ -21,6 +21,7 @@ on:
       - "Enterprise-Scale Deployment"
       - "Enterprise-Scale Event"
 
+
   #
   # Schedule
   # This is an optional trigger to pull the latest Azure
@@ -146,8 +147,8 @@ jobs:
       # to not have to repeat them in every pipeline.
       #
       
-      - name: 'Sharedsteps'
-        uses: ./.github/.templates/sharedSteps
+      - name: 'Shared steps'
+        uses: ./.github/actions/sharedSteps
           
       #
       # Configure

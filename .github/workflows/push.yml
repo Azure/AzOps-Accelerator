@@ -65,8 +65,8 @@ jobs:
       # to not have to repeat them in every pipeline.
       #
 
-      - name: 'Sharedsteps'
-        uses: ./.github/.templates/sharedSteps
+      - name: 'Shared steps'
+        uses: ./.github/actions/sharedSteps
 
       #
       # Deploy
@@ -77,4 +77,4 @@ jobs:
         with:
           deploy: true
           name: 'Deploy'
-        uses: ./.github/.templates/validate-deploy
+        uses: ./.github/actions/validate-deploy
