@@ -1,0 +1,63 @@
+name: "Shared Steps"
+
+on:
+  workflow_call:
+
+runs:
+  using: 'composite'
+  steps:
+    - name: "Get Latest AzOps version"
+      shell: pwsh
+      run: |
+        $AzOpsModuleVersion = '${{env.AZOPS_MODULE_VERSION}}'
+        if(-not $AzOpsModuleVersion) {
+          $latestVersionUri = "https://www.powershellgallery.com/api/v2/FindPackagesById()?id='AzOps'&`$filter=IsLatestVersion"
+          $latestVersionId = (Invoke-RestMethod $latestVersionUri).properties.NormalizedVersion
+          echo "MODULE_VERSION=$latestVersionId" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+        }
+        else {
+          echo "MODULE_VERSION=$AzOpsModuleVersion" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+        }
+        
+    #
+    # Cache Dependencies
+    # Cache dependencies if version has not changed
+    #  
+    - name: Cache AzOps module
+      if: ${{ env.MODULE_VERSION != '' }}
+      id: cache-AzOps
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.modulesFolder }}
+        key: '"AzOpsModule" | ${{ env.MODULE_VERSION }}'
+    
+    #
+    # Dependencies
+    # Install required runtime modules
+    #
+    - name: "Dependencies"
+      if: env.MODULE_VERSION == '' || steps.cache-AzOps.outputs.cache-hit != 'true' 
+      shell: pwsh
+      run: |
+        if(-not (Test-Path -Path "${{ env.modulesFolder }}")) {
+          mkdir ${{ env.modulesFolder }}
+        }
+        $params = @{
+          Name            = 'AzOps'
+          Path            = '${{ env.modulesFolder }}'
+          Force           = $true
+        }
+        $params.RequiredVersion = '${{ env.MODULE_VERSION }}'        
+        Save-Module @params
+
+      #
+      # Connect
+      # Authenticate Azure context
+      #
+
+    - name: "Connect"
+      shell: pwsh
+      run: |
+        $Env:PSModulePath = $Env:PSModulePath, '${{ env.modulesFolder }}' -join [IO.Path]::PathSeparator
+        $credential = New-Object PSCredential -ArgumentList ${{env.ARM_CLIENT_ID}}, (ConvertTo-SecureString -String ${{env.ARM_CLIENT_SECRET}} -AsPlainText -Force)
+        Connect-AzAccount -TenantId ${{env.ARM_TENANT_ID}} -ServicePrincipal -Credential $credential -SubscriptionId ${{env.ARM_SUBSCRIPTION_ID}}

@@ -50,13 +50,11 @@ steps:
         Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
         Initialize-AzOpsEnvironment
         $diff = Get-Content -Path /tmp/diff.txt
-        $module = Get-Module -Name AzOps
-        if(Test-Path -Path "/tmp/diffdeletedfiles.txt")
-        {
+        if(Test-Path -Path "/tmp/diffdeletedfiles.txt") {
           $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
-          $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf:$RunWhatIf })
-        }
-        else{
-          $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -WhatIf:$RunWhatIf })
+          Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf:$RunWhatIf
+        } 
+        else {
+          Invoke-AzOpsPush -ChangeSet $diff -WhatIf:$RunWhatIf
         }
         Get-Job | Remove-Job -Force

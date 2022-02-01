@@ -83,7 +83,8 @@ jobs:
       shell: bash
       run: |
         test -f ./origin/.github/workflows/patch.yml && rm -f ./origin/.github/workflows/patch.yml
-        cp ./upstream/.github/workflows/* ./origin/.github/workflows/
+        cp -R -v ./upstream/.github/workflows/ ./origin/.github/
+        cp -R -v ./upstream/.github/actions/ ./origin/.github/
 
     #
     # Commit
