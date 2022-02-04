@@ -100,11 +100,16 @@ steps:
       targetType: "inline"
       script: |
         $Env:PSModulePath = $Env:PSModulePath, '$(modulesFolder)' -join [IO.Path]::PathSeparator  
+        $azParams = @{
+          SubscriptionId    = '$(ARM_SUBSCRIPTION_ID)'
+          TenantId          = '$(ARM_TENANT_ID)'
+        }
+        if ('$(ARM_ENVIRONMENT)' -in (Get-AzEnvironment).Name) {
+          $azParams.Environment = '$(ARM_ENVIRONMENT)'
+        }
         if('$(ARM_CLIENT_ID)') {
-          $clientId='$(ARM_CLIENT_ID)'
-          $clientSecret='$(ARM_CLIENT_SECRET)'
-          $credential = New-Object PSCredential -ArgumentList $clientId, (ConvertTo-SecureString -String $clientSecret -AsPlainText -Force)
-          Connect-AzAccount -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
+          $azParams.credential = (New-Object PSCredential -ArgumentList '$(ARM_CLIENT_ID)', (ConvertTo-SecureString -String '$(ARM_CLIENT_SECRET)' -AsPlainText -Force))
+          Connect-AzAccount -ServicePrincipal @azParams
         } else {        
-          Connect-AzAccount -TenantId $(ARM_TENANT_ID) -Identity -SubscriptionId $(ARM_SUBSCRIPTION_ID) 
+          Connect-AzAccount -Identity @azParams
         }
