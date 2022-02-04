@@ -1,0 +1,27 @@
+variables:
+
+  #
+  # Credentials
+  # This reference is to the Variable Group which needs
+  # to be created which will contain the following values.
+  # Set AZOPS_MODULE_VERSION to the desired version of the 
+  # AzOps Module to enable version pinning and caching.
+  #
+  # - ARM_TENANT_ID
+  # - ARM_SUBSCRIPTION_ID
+  # - ARM_CLIENT_ID
+  # - ARM_CLIENT_SECRET
+  # - AZOPS_MODULE_VERSION   
+  #
+
+  - group: credentials
+  
+  #
+  # modulesFolder
+  # To enable caching of PowerShell modules between
+  # runs, the modules are stored in a modules folder
+  # that can be cached.
+  #
+
+  - name: modulesFolder
+    value: '$(System.DefaultWorkingDirectory)/Modules'

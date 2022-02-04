@@ -11,19 +11,14 @@ name: "AzOps - Validate"
 trigger: none
 
 variables:
-
+    
   #
-  # Credentials
-  # This reference is to the Variable Group which needs
-  # to be created which will contain the following values.
-  #
-  # - ARM_TENANT_ID
-  # - ARM_SUBSCRIPTION_ID
-  # - ARM_CLIENT_ID
-  # - ARM_CLIENT_SECRET
+  # Shared variables
+  # Include shared variables from the 'vars.yml' file
+  # to not have to repeat them in every pipeline.
   #
 
-  - group: credentials
+  - template: .templates/vars.yml
 
 jobs:
 
@@ -38,88 +33,36 @@ jobs:
       vmImage: "ubuntu-20.04"
 
     steps:
-
+  
       #
-      # Checkout
-      # Checks-out the repository
+      # Shared steps
+      # Include shared steps from the 'shared.yml' file
+      # to not have to repeat them in every pipeline.
       #
-
-      - checkout: self
-        fetchDepth: 0
-        persistCredentials: true
-
-      #
-      # Dependencies
-      # Install required runtime modules
-      #
-
-      - task: PowerShell@2
-        displayName: "Dependencies"
-        inputs:
-          targetType: "inline"
-          script: |
-            Install-Module -Name "AzOps" -Force
-
-      #
-      # Connect
-      # Authenticate Azure context
-      #
-
-      - task: PowerShell@2
-        displayName: "Connect"
-        inputs:
-          targetType: "inline"
-          script: |
-            $credential = New-Object PSCredential -ArgumentList $(ARM_CLIENT_ID), (ConvertTo-SecureString -String $(ARM_CLIENT_SECRET) -AsPlainText -Force)
-            Connect-AzAccount -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
-
-      #
-      # Diff
-      # List index changes
-      #
-
-      - task: Bash@3
-        displayName: "Diff"
-        inputs:
-          targetType: "inline"
-          script: |
-            if [ ! -z "$(git diff --name-status HEAD^ HEAD)" ]; then
-              echo $(git diff --name-status HEAD^ HEAD)
-              git diff --name-status HEAD^ HEAD > /tmp/diff.txt
-              if [ ! -z "$(git diff --diff-filter=D HEAD^ HEAD)" ]; then
-                echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r)
-                git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
-              fi
-            else
-              echo "The validation pipeline failed because there is currently no change to be processed"
-              exit 1
-            fi
+      
+      - template: .templates/sharedSteps.yml
+        parameters:
+          AZOPS_MODULE_VERSION: ${{ variables['AZOPS_MODULE_VERSION'] }}
+          modulesFolder: ${{ variables['modulesFolder'] }}
+          ARM_CLIENT_ID: ${{ variables['ARM_CLIENT_ID'] }}
+          ARM_CLIENT_SECRET: ${{ variables['ARM_CLIENT_SECRET'] }}
+          ARM_SUBSCRIPTION_ID: ${{ variables['ARM_SUBSCRIPTION_ID'] }}
+          ARM_TENANT_ID: ${{ variables['ARM_TENANT_ID'] }}
 
       #
       # Validate
+      # Run what-if deployment on any templates changed
+      # in the last commit
       #
-
-      - task: PowerShell@2
-        displayName: "Validate"
-        inputs:
-          targetType: "inline"
-          script: |
-            Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
-            Initialize-AzOpsEnvironment
-            $diff = Get-Content -Path /tmp/diff.txt
-            $module = Get-Module -Name AzOps
-            if(Test-Path -Path "/tmp/diffdeletedfiles.txt")
-            {
-              $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
-              $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf })
-            }
-            else{
-              $module.Invoke({ Invoke-AzOpsPush -ChangeSet $diff -WhatIf })
-            }
-            Get-Job | Remove-Job -Force
+      
+      - template: .templates/validate-deploy.yml
+        parameters:
+          deploy: false
+          modulesFolder: ${{ variables['modulesFolder'] }}
 
       #
       # Results
+      # Post results as a comment to the pull request.
       #
 
       - task: PowerShell@2
