@@ -50,14 +50,21 @@ runs:
         $params.RequiredVersion = '${{ env.MODULE_VERSION }}'        
         Save-Module @params
 
-      #
-      # Connect
-      # Authenticate Azure context
-      #
+    #
+    # Connect
+    # Authenticate Azure context
+    #
 
     - name: "Connect"
       shell: pwsh
       run: |
         $Env:PSModulePath = $Env:PSModulePath, '${{ env.modulesFolder }}' -join [IO.Path]::PathSeparator
-        $credential = New-Object PSCredential -ArgumentList ${{env.ARM_CLIENT_ID}}, (ConvertTo-SecureString -String ${{env.ARM_CLIENT_SECRET}} -AsPlainText -Force)
-        Connect-AzAccount -TenantId ${{env.ARM_TENANT_ID}} -ServicePrincipal -Credential $credential -SubscriptionId ${{env.ARM_SUBSCRIPTION_ID}}
+        $azParams = @{
+          Credential      = (New-Object PSCredential -ArgumentList ${{env.ARM_CLIENT_ID}}, (ConvertTo-SecureString -String ${{env.ARM_CLIENT_SECRET}} -AsPlainText -Force))
+          SubscriptionId  = '${{env.ARM_SUBSCRIPTION_ID}}'
+          TenantId        = '${{env.ARM_TENANT_ID}}'
+        }
+        if ('${{env.ARM_ENVIRONMENT}}' -in (Get-AzEnvironment).Name) {
+          $azParams.Environment = '${{env.ARM_ENVIRONMENT}}'
+        }
+        Connect-AzAccount -ServicePrincipal @azParams
