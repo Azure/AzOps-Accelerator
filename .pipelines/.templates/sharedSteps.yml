@@ -16,6 +16,10 @@ parameters:
     type: string
     default: ''
 
+  - name: ARM_ENVIRONMENT
+    type: string
+    default: ''
+
   - name: ARM_SUBSCRIPTION_ID
     type: string
 
