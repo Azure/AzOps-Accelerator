@@ -3,10 +3,6 @@ parameters:
     type: boolean
     default: false
 
-  - name: modulesFolder
-    type: string
-    default: '$(System.DefaultWorkingDirectory)/Modules'
-
 steps:
 
     #

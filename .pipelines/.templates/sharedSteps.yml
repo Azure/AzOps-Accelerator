@@ -1,31 +1,3 @@
-parameters:
-
-  - name: AZOPS_MODULE_VERSION
-    type: string
-    default: ''
-
-  - name: modulesFolder
-    type: string
-    default: '$(System.DefaultWorkingDirectory)/Modules'
-
-  - name: ARM_CLIENT_ID
-    type: string
-    default: ''
-
-  - name: ARM_CLIENT_SECRET
-    type: string
-    default: ''
-
-  - name: ARM_ENVIRONMENT
-    type: string
-    default: ''
-
-  - name: ARM_SUBSCRIPTION_ID
-    type: string
-
-  - name: ARM_TENANT_ID
-    type: string
-
 steps:
 
   #
