@@ -6,7 +6,7 @@ variables:
   # to be created which will contain the following values.
   #
   # Set ARM_ENVIRONMENT to the Azure Environment you wish to use.
-  # Valid values are: AzureCloud, AzureChinaCloud, AzureGermanCloud, AzureUSGovernment
+  # Valid values are: AzureCloud, AzureChinaCloud, AzureUSGovernment
   #
   # Set AZOPS_MODULE_VERSION to the desired version of the 
   # AzOps Module to enable version pinning. No value will cache the latest release.
