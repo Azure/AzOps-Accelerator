@@ -60,7 +60,7 @@ runs:
       run: |
         $Env:PSModulePath = $Env:PSModulePath, '${{ env.modulesFolder }}' -join [IO.Path]::PathSeparator
         $azParams = @{
-          Credential      = (New-Object PSCredential -ArgumentList ${{env.ARM_CLIENT_ID}}, (ConvertTo-SecureString -String ${{env.ARM_CLIENT_SECRET}} -AsPlainText -Force))
+          Credential      = (New-Object PSCredential -ArgumentList '${{env.ARM_CLIENT_ID}}', (ConvertTo-SecureString -String '${{env.ARM_CLIENT_SECRET}}' -AsPlainText -Force))
           SubscriptionId  = '${{env.ARM_SUBSCRIPTION_ID}}'
           TenantId        = '${{env.ARM_TENANT_ID}}'
         }
