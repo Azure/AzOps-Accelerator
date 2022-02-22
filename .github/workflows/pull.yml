@@ -21,7 +21,6 @@ on:
       - "Enterprise-Scale Deployment"
       - "Enterprise-Scale Event"
 
-
   #
   # Schedule
   # This is an optional trigger to pull the latest Azure
@@ -53,20 +52,9 @@ env:
 
   ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
   ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-  ARM_ENVIRONMENT: ${{ secrets.ARM_ENVIRONMENT }}
-  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-  AZOPS_MODULE_VERSION: ${{ secrets.AZOPS_MODULE_VERSION }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
-  #
-  # modulesFolder
-  # To enable caching of PowerShell modules between
-  # runs, the modules are stored in a modules folder
-  # that can be cached.
-  #
-
-  modulesFolder: "~/.local/share/powershell/Modules"
 
   #
   # Folder Name
@@ -141,16 +129,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      
-      #
-      # Shared steps
-      # Include shared steps from the 'action.yml' file
-      # to not have to repeat them in every pipeline.
-      #
-      
-      - name: 'Shared steps'
-        uses: ./.github/actions/sharedSteps
-          
+
       #
       # Configure
       # Set global options
@@ -171,6 +150,27 @@ jobs:
         shell: bash
         run: |
           git checkout -b ${{ env.branch }}
+
+      #
+      # Dependencies
+      # Install required runtime modules
+      #
+
+      - name: "Dependencies"
+        shell: pwsh
+        run: |
+          Install-Module -Name "AzOps" -Force
+
+      #
+      # Connect
+      # Authenticate Azure context
+      #
+
+      - name: "Connect"
+        shell: pwsh
+        run: |
+          $credential = New-Object PSCredential -ArgumentList $env:ARM_CLIENT_ID, (ConvertTo-SecureString -String $env:ARM_CLIENT_SECRET -AsPlainText -Force)
+          Connect-AzAccount -TenantId $env:ARM_TENANT_ID -ServicePrincipal -Credential $credential -SubscriptionId $env:ARM_SUBSCRIPTION_ID
 
       #
       # Initialize
