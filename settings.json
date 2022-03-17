@@ -43,8 +43,8 @@
             ]
         },
         "|AzureDevOps": {
-            "!Condition": "EnvAzDevPipeline",
-            "AzOps.Core.State": "%PIPELINE_WORKSPACE%/root"
+            "!Condition": "EnvAzDevPipeline -or -not OSWindows",
+            "AzOps.Core.State": "%PIPELINE_WORKSPACE%/s/root"
         },
         "|GitHub": {
             "!Condition": "EnvGithubAction",
