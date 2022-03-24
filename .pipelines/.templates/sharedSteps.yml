@@ -72,6 +72,8 @@ steps:
 
   - task: PowerShell@2
     displayName: "Connect"
+    env:
+      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
     inputs:
       targetType: "inline"
       script: |
@@ -84,7 +86,7 @@ steps:
           $azParams.Environment = '$(ARM_ENVIRONMENT)'
         }
         if('$(ARM_CLIENT_ID)') {
-          $azParams.credential = (New-Object PSCredential -ArgumentList '$(ARM_CLIENT_ID)', (ConvertTo-SecureString -String '$(ARM_CLIENT_SECRET)' -AsPlainText -Force))
+          $azParams.credential = (New-Object PSCredential -ArgumentList '$(ARM_CLIENT_ID)', (ConvertTo-SecureString -String $Env:ARM_CLIENT_SECRET -AsPlainText -Force))
           Connect-AzAccount -ServicePrincipal @azParams
         } else {        
           Connect-AzAccount -Identity @azParams
