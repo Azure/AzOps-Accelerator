@@ -254,5 +254,5 @@ jobs:
         if: steps.status.outputs.state == 'continue'
         shell: bash
         run: |
-          gh pr create --title "${{ env.pull_request }}" --body "-" --base ${{ github.ref }} --head ${{ env.branch }}
+          gh pr create --title "${{ env.pull_request }}" --body "-" --base 'main' --head ${{ env.branch }}
           gh pr merge "${{ env.branch }}" --squash --delete-branch
