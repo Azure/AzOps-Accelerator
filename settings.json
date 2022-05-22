@@ -19,9 +19,12 @@
             ],
             "Core.ExportRawTemplate": false,
             "Core.IgnoreContextCheck": false,
+            "Core.IncludeResourcesInResourceGroup": ["*"],
+            "Core.IncludeResourceType": ["*"],
             "Core.InvalidateCache": true,
             "Core.OfferType": "MS-AZR-0017P",
             "Core.PartialMgDiscoveryRoot": [],
+            "Core.SkipPim": true,
             "Core.SkipPolicy": false,
             "Core.SkipResource": true,
             "Core.SkipChildResource": true,
@@ -34,7 +37,7 @@
                 "Microsoft.VSOnline/plans"
             ],
             "Core.SkipRole": false,
-            "Core.SubscriptionsToIncludeResourceGroups": "*",
+            "Core.SubscriptionsToIncludeResourceGroups": ["*"],
             "Core.TemplateParameterFileSuffix": ".json",
             "Core.ThrottleLimit": 10,
             "Core.WhatifExcludedChangeTypes":[
