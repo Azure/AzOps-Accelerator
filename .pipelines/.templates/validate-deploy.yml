@@ -20,7 +20,7 @@ steps:
             $gitDiff | Write-Host
             $gitDiff | Out-File -FilePath '/tmp/diff.txt'
             
-            $deletedContent = git diff --diff-filter=D HEAD^ HEAD --no-prefix --no-rename
+            $deletedContent = git diff --diff-filter=D HEAD^ HEAD --no-prefix --no-renames
             if($null -ne $deletedContent) {
                 $deletedContent = $deletedContent -match '^-' -replace '^([^-+ ]*)[-+ ]', '$1'
                 Write-Host '##[group]Deleted files content'
