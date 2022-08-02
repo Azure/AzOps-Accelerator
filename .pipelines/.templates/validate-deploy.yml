@@ -10,22 +10,29 @@ steps:
     # List index changes
     #
 
-  - task: Bash@3
+  - task: PowerShell@2
     displayName: "Diff"
     inputs:
       targetType: "inline"
       script: |
-        if [ ! -z "$(git diff --name-status HEAD^ HEAD)" ]; then
-          echo $(git diff --name-status HEAD^ HEAD)
-          git diff --name-status HEAD^ HEAD > /tmp/diff.txt
-          if [ ! -z "$(git diff --diff-filter=D HEAD^ HEAD --no-renames)" ]; then
-          echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix --no-renames | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r)
-          git diff --diff-filter=D HEAD^ HEAD --no-prefix --no-renames | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
-          fi
-        else
-          echo "The validation pipeline failed because there is currently no change to be processed"
-          exit 1
-        fi
+        $gitDiff = git diff --name-status HEAD^ HEAD
+        if($null -ne $gitDiff) {
+            $gitDiff | Write-Host
+            $gitDiff | Out-File -FilePath '/tmp/diff.txt'
+            
+            $deletedContent = git diff --diff-filter=D HEAD^ HEAD --no-prefix --no-renames
+            if($null -ne $deletedContent) {
+                $deletedContent = $deletedContent -match '^-' -replace '^([^-+ ]*)[-+ ]', '$1'
+                Write-Host '##[group]Deleted files content'
+                $deletedContent | Write-Host
+                Write-Host '##[endgroup]'
+                $deletedContent | Out-File -FilePath '/tmp/diffdeletedfiles.txt'
+            }
+        }
+        else {
+            Write-Host '##[error]The validation pipeline failed because there is currently no change to be processed'
+            exit 1
+        }
 
   #
   # Validate or Deploy
