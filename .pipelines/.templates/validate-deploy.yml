@@ -43,48 +43,8 @@ steps:
     displayName: "CustomSorting"
     condition: eq(variables['AZOPS_CUSTOM_SORT_ORDER'],'true')
     inputs:
-      targetType: "inline"
-      script: |
-        $diff = Get-Content -Path /tmp/diff.txt
-
-        Write-Host '##[section]Files found in diff:'
-        $diff | Write-Host
-
-        $diffTable = @{}
-        $diff | ForEach-Object -Process {
-          $change = $_
-          $path = ($change -split "`t")[-1]
-          $entry = [pscustomobject]@{
-            fileName   = Split-Path -Path $path -Leaf
-            directory  = Split-Path -Path $path -Parent
-            diffString = $change
-          }
-          if ($null -eq $diffTable[$entry.directory]) {
-            $diffTable[$entry.directory] = @{}
-          }
-          if($entry.fileName -ne '.order') {
-            $diffTable[$entry.directory][$entry.fileName] = $entry
-          }
-        }
-
-        $sortedDiff = foreach ($directoryPath in ($diffTable.Keys | Sort-Object)) {
-          $orderPath = Join-Path -Path $directoryPath -ChildPath '.order'
-          if (Test-Path -Path $orderPath) {
-            $order = Get-Content -Path $orderPath | ForEach-Object {$_.Trim()}
-            foreach ($orderName in $order) {
-              if ($null -ne $diffTable.$directoryPath.$orderName) {
-                Write-Output -InputObject $diffTable.$directoryPath.$orderName.diffString
-                $diffTable.$directoryPath.Remove($orderName)
-              }
-            }
-          }
-          Write-Output ($diffTable.$directoryPath.Values.diffString | Sort-Object)
-        }
-
-        Write-Host '##[section]Sorted files:'
-        $sortedDiff | Write-Host
-                
-        $sortedDiff | Out-File -Path '/tmp/diff.txt'
+      targetType: "filePath"
+      filePath: ".scripts/customSorting.ps1"
 
   #
   # Validate or Deploy
