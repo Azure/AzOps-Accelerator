@@ -34,6 +34,18 @@ steps:
             exit 1
         }
 
+    #
+    # CustomSorting
+    # If CustomSorting is enabled, sort files in diff by the .order file in each directory
+    #
+
+  - task: PowerShell@2
+    displayName: "CustomSorting"
+    condition: eq(variables['AZOPS_CUSTOM_SORT_ORDER'],'true')
+    inputs:
+      targetType: "filePath"
+      filePath: ".scripts/customSorting.ps1"
+
   #
   # Validate or Deploy
   # If parameter "deploy" is set to true, then deploy the changes,
@@ -49,15 +61,16 @@ steps:
       targetType: "inline"
       script: |
         $Env:PSModulePath = $Env:PSModulePath, '$(modulesFolder)' -join [IO.Path]::PathSeparator
+        $CustomSortOrder = $Env:AZOPS_CUSTOM_SORT_ORDER -eq 'true'
         $RunWhatIf = -not ('${{parameters.deploy}}' -eq 'true')
         Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
         Initialize-AzOpsEnvironment
         $diff = Get-Content -Path /tmp/diff.txt
         if(Test-Path -Path "/tmp/diffdeletedfiles.txt") {
           $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
-          Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf:$RunWhatIf
+          Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf:$RunWhatIf -CustomSortOrder:$CustomSortOrder
         } 
         else {
-          Invoke-AzOpsPush -ChangeSet $diff -WhatIf:$RunWhatIf
+          Invoke-AzOpsPush -ChangeSet $diff -WhatIf:$RunWhatIf -CustomSortOrder:$CustomSortOrder
         }
         Get-Job | Remove-Job -Force
