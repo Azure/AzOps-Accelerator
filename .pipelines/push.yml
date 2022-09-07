@@ -29,6 +29,7 @@ variables:
 jobs:
 
   - job: push
+    condition: not(contains(variables['Build.SourceVersionMessage'], 'from automated into main'))
 
     #
     # Push
