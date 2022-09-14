@@ -34,7 +34,7 @@ runs:
             }
           }
           else {
-            Write-Host '##[error]The validation pipeline failed because there is currently no change to be processed'
+            Write-Error -Message 'The validation pipeline failed because there is currently no change to be processed'
             exit 1
           }
       #
