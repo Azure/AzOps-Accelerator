@@ -64,10 +64,8 @@ jobs:
           targetType: "inline"
           script: |
             if (Test-Path "/tmp/OUTPUT.md") {
-              $pullRequestTargetRepository = "$(System.PullRequest.SourceRepositoryUri)".Split("/")[-1]
-              $uri = "$(System.CollectionUri)/$(System.TeamProject)/_apis/git/repositories/$pullRequestTargetRepository/pullRequests/$(System.PullRequest.PullRequestId)/threads?api-version=6.0"
+              $uri = "$(System.CollectionUri)/$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.Name)/pullRequests/$(System.PullRequest.PullRequestId)/threads?api-version=6.0"
               Invoke-RestMethod `
-                -Method Post `
                 -ContentType "application/json;charset=utf-8" `
                 -Headers @{ "Authorization" = "Bearer $(System.AccessToken)" } `
                 -Body (@{
