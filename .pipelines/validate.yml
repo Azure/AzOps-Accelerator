@@ -66,6 +66,7 @@ jobs:
             if (Test-Path "/tmp/OUTPUT.md") {
               $uri = "$(System.CollectionUri)/$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.Name)/pullRequests/$(System.PullRequest.PullRequestId)/threads?api-version=6.0"
               Invoke-RestMethod `
+                -Method Post `
                 -ContentType "application/json;charset=utf-8" `
                 -Headers @{ "Authorization" = "Bearer $(System.AccessToken)" } `
                 -Body (@{
