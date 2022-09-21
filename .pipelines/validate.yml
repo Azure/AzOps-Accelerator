@@ -59,6 +59,7 @@ jobs:
 
       - task: PowerShell@2
         displayName: 'Results'
+        condition: eq(variables['Build.Reason'], 'PullRequest')
         inputs:
           targetType: "inline"
           script: |
@@ -66,7 +67,8 @@ jobs:
               $uri = "$(System.CollectionUri)/$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.Name)/pullRequests/$(System.PullRequest.PullRequestId)/threads?api-version=6.0"
               Invoke-RestMethod `
                 -Method Post `
-                -Headers @{ "Authorization" = "Bearer $(System.AccessToken)"; "Content-Type" = "application/json" } `
+                -ContentType "application/json;charset=utf-8" `
+                -Headers @{ "Authorization" = "Bearer $(System.AccessToken)" } `
                 -Body (@{
                   "comments" = @(
                       @{ "parentCommentId" = 0; "content" = "$(Get-Content -Path /tmp/OUTPUT.md -Raw)"; "commentType" = 1 }
