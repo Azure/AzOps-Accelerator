@@ -79,6 +79,7 @@ jobs:
       #
 
       - name: "Results"
+        if: always()
         shell: bash
         run: |
           if [ -f /tmp/OUTPUT.md ]; then
