@@ -1,0 +1,109 @@
+---
+name: "AzOps - Redeploy"
+
+parameters:
+- name: path
+  displayName: Path with templates that will be deployed
+  type: string
+
+#
+# Triggers
+# Automated triggers are disabled for the Update pipelines
+# This pipeline should be run on a manual basis to avoid
+# any possible conflicts. It's also recommended to manually
+# disable CI triggers with overrides.
+#
+
+trigger: none
+
+variables:
+
+  #
+  # Shared variables
+  # Include shared variables from the 'vars.yml' file
+  # to not have to repeat them in every pipeline.
+  #
+
+  - template: .templates/vars.yml
+
+jobs:
+
+  - job: redeploy
+
+    #
+    # Push
+    # Before running the resource deployment,
+    # we need to validate the repository state
+    # is up to date and we won't encounter conflicts.
+    #
+
+    displayName: "Redeploy"
+    pool:
+      vmImage: ubuntu-20.04
+
+    steps:
+
+      #
+      # Shared steps
+      # Include shared steps from the 'shared.yml' file
+      # to not have to repeat them in every pipeline.
+      #
+
+      - template: .templates/sharedSteps.yml
+
+      #
+      # Diff
+      # List index changes
+      #
+
+      - task: PowerShell@2
+        displayName: "List files"
+        inputs:
+          targetType: "inline"
+          script: |
+            $Path = '${{ parameters.path }}'
+            if( -not (Test-Path -Path $Path -PathType Container)) {
+              Write-Host "##[error]The path $Path does not exist"
+              exit 1
+            }
+            $gitDiff = Get-ChildItem $Path -File | Resolve-Path -Relative | ForEach-Object -MemberName Insert -ArgumentList 0, "M`t"
+
+            if($null -ne $gitDiff) {
+                $gitDiff | Write-Host
+                $gitDiff | Out-File -FilePath '/tmp/diff.txt'
+            }
+            else {
+                Write-Host '##[error]The validation pipeline failed because there is currently no change to be processed'
+                exit 1
+            }
+
+      #
+      # CustomSorting
+      # If CustomSorting is enabled, sort files in diff by the .order file in each directory
+      #
+
+      - task: PowerShell@2
+        displayName: "CustomSorting"
+        condition: eq(variables['AZOPS_CUSTOM_SORT_ORDER'],'true')
+        inputs:
+          targetType: "filePath"
+          filePath: ".scripts/customSorting.ps1"
+
+      #
+      # Validate or Deploy
+      # If parameter "deploy" is set to true, then deploy the changes,
+      # otherwise validate the changes.
+      #
+
+      - task: PowerShell@2
+        displayName: "Deploy"
+        inputs:
+          targetType: "inline"
+          script: |
+            $Env:PSModulePath = $Env:PSModulePath, '$(modulesFolder)' -join [IO.Path]::PathSeparator
+            $CustomSortOrder = $Env:AZOPS_CUSTOM_SORT_ORDER -eq 'true'
+            Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
+            Initialize-AzOpsEnvironment
+            $diff = Get-Content -Path /tmp/diff.txt
+            Invoke-AzOpsPush -ChangeSet $diff -CustomSortOrder:$CustomSortOrder
+            Get-Job | Remove-Job -Force
