@@ -8,10 +8,7 @@ parameters:
 
 #
 # Triggers
-# Automated triggers are disabled for the Update pipelines
-# This pipeline should be run on a manual basis to avoid
-# any possible conflicts. It's also recommended to manually
-# disable CI triggers with overrides.
+# Automated triggers are disabled for the Redeploy pipeline
 #
 
 trigger: none
@@ -31,10 +28,8 @@ jobs:
   - job: redeploy
 
     #
-    # Push
-    # Before running the resource deployment,
-    # we need to validate the repository state
-    # is up to date and we won't encounter conflicts.
+    # Redeploy
+    # This job will redeploy all the templates in the given path
     #
 
     displayName: "Redeploy"
@@ -53,7 +48,7 @@ jobs:
 
       #
       # Diff
-      # List index changes
+      # Get all files in the given path
       #
 
       - task: PowerShell@2
@@ -90,9 +85,8 @@ jobs:
           filePath: ".scripts/customSorting.ps1"
 
       #
-      # Validate or Deploy
-      # If parameter "deploy" is set to true, then deploy the changes,
-      # otherwise validate the changes.
+      # Deploy
+      # Deploy all templates in path.
       #
 
       - task: PowerShell@2
