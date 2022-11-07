@@ -95,7 +95,7 @@ jobs:
       - name: "Diff"
         shell: pwsh
         run: |
-            $Path = '${{ parameters.path }}'
+            $Path = '${{ github.event.inputs.path }}'
             if( -not (Test-Path -Path $Path -PathType Container)) {
               Write-Host "##[error]The path $Path does not exist"
               exit 1
