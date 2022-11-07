@@ -96,13 +96,19 @@ jobs:
         shell: pwsh
         run: |
             $Path = '${{ github.event.inputs.path }}'
-            if( -not (Test-Path -Path $Path -PathType Container)) {
+            if ( -not (Test-Path -Path $Path)) {
               Write-Host "##[error]The path $Path does not exist"
               exit 1
             }
-            $gitDiff = Get-ChildItem $Path -File | Resolve-Path -Relative | ForEach-Object -MemberName Insert -ArgumentList 0, "M`t"
+            $PathItem = Get-Item -Path $Path
+            if ($PathItem.PSISContainer) {
+              $gitDiff = Get-ChildItem $Path -File | Resolve-Path -Relative | ForEach-Object -MemberName Insert -ArgumentList 0, "M`t"
+            }
+            else {
+              $gitDiff = $PathItem.FullName | Resolve-Path -Relative | ForEach-Object -MemberName Insert -ArgumentList 0, "M`t"
+            }
 
-            if($null -ne $gitDiff) {
+            if ($null -ne $gitDiff) {
                 $gitDiff | Write-Host
                 $gitDiff | Out-File -FilePath '/tmp/diff.txt'
             }
