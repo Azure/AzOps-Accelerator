@@ -104,7 +104,7 @@ jobs:
           git add .github/
           git commit -m 'Update commit'
           git push origin ${{ env.branch }} -f
-          echo "::set-output name=state::continue"
+          echo "state=continue" >> $GITHUB_OUTPUT
         fi
 
     #
