@@ -207,9 +207,9 @@ jobs:
           echo $STATUS
           if [ -z "$STATUS" ]
           then
-            echo "::set-output name=state::stop"
+            echo "state=stop" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=state::continue"
+            echo "state=continue" >> $GITHUB_OUTPUT
           fi
 
       #
