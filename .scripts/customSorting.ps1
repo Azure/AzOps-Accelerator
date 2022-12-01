@@ -17,7 +17,7 @@ $diff | ForEach-Object -Process {
     $path = ($change -split "`t")[-1]
     $entry = [pscustomobject]@{
         fileName   = Split-Path -Path $path -Leaf
-        directory  = Split-Path -Path $path -Parent
+        directory  = (Split-Path -Path $path -Parent).length -gt 0 ? (Split-Path -Path $path -Parent) : '.'
         diffString = $change
     }
     if ($null -eq $diffTable[$entry.directory]) {
