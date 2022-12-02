@@ -11,7 +11,7 @@ runs:
       run: |
         $AzOpsModuleVersion = '${{env.AZOPS_MODULE_VERSION}}'
         if(-not $AzOpsModuleVersion) {
-          $latestVersionId = Find-Module AzOps | Select-Object -ExpandProperty Version
+          $latestVersionId = Find-Module -Name AzOps | Select-Object -ExpandProperty Version
           echo "MODULE_VERSION=$latestVersionId" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
         }
         else {

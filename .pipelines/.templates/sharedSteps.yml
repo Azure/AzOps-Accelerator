@@ -21,7 +21,7 @@ steps:
     inputs:
       targetType: "inline"
       script: |
-        $latestVersionId = Find-Module AzOps | Select-Object -ExpandProperty Version
+        $latestVersionId = Find-Module -Name AzOps | Select-Object -ExpandProperty Version
         Write-Host "##vso[task.setvariable variable=AZOPS_MODULE_VERSION;]$latestVersionId"
 
   #
