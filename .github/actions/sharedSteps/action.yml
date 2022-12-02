@@ -11,8 +11,7 @@ runs:
       run: |
         $AzOpsModuleVersion = '${{env.AZOPS_MODULE_VERSION}}'
         if(-not $AzOpsModuleVersion) {
-          $latestVersionUri = "https://www.powershellgallery.com/api/v2/FindPackagesById()?id='AzOps'&`$filter=IsLatestVersion"
-          $latestVersionId = (Invoke-RestMethod $latestVersionUri).properties.NormalizedVersion
+          $latestVersionId = Find-Module -Name AzOps | Select-Object -ExpandProperty Version
           echo "MODULE_VERSION=$latestVersionId" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
         }
         else {
