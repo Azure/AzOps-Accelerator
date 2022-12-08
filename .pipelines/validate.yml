@@ -23,6 +23,7 @@ variables:
 jobs:
 
   - job: validate
+    condition: ne(variables['system.pullRequest.sourceBranch'], 'refs/heads/automated')
 
     #
     # Validate
