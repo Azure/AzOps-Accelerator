@@ -1,0 +1,145 @@
+---
+name: "AzOps - Redeploy"
+
+on:
+
+  #
+  # Workflow Dispatch
+  # Manually invoke the Redeploy action via the GitHub
+  # UI on-demand.
+  #
+
+  workflow_dispatch:
+    inputs:
+      path:
+        description: 'Path with templates that will be deployed'
+        required: true
+
+env:
+
+  #
+  # Credentials
+  #
+
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_ENVIRONMENT: ${{ secrets.ARM_ENVIRONMENT }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+  #
+  # moduleVersion
+  # Use this to pin AzOps to a specific version of the module.
+  #
+
+  AZOPS_MODULE_VERSION: ${{ secrets.AZOPS_MODULE_VERSION }}
+
+  #
+  # customSortOrder
+  # Set to true to support custom sort order.
+  # When enabled, add a file named .order containing a list of
+  # file names and the files in that folder will be deployed in the
+  # order specified in the file. All files not listed in the file
+  # will be deployed after the files listed in the file.
+  #
+
+  AZOPS_CUSTOM_SORT_ORDER: ${{ secrets.AZOPS_CUSTOM_SORT_ORDER }}
+
+  #
+  # modulesFolder
+  # To enable caching of PowerShell modules between
+  # runs, the modules are stored in a modules folder
+  # that can be cached.
+  #
+  
+  modulesFolder: "~/.local/share/powershell/Modules"
+
+jobs:
+
+  redeploy:
+
+    #
+    # Redeploy
+    # This job will redeploy all the templates in the given path
+    #
+
+    name: "Redeploy"
+    runs-on: ubuntu-20.04
+
+    steps:
+
+      #
+      # Checkout
+      # Checks-out the repository
+      #
+
+      - name: "Checkout"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      #
+      # Shared steps
+      # Include shared steps from the 'action.yml' file
+      # to not have to repeat them in every pipeline.
+      #
+
+      - name: 'Shared steps'
+        uses: ./.github/actions/sharedSteps
+
+      #
+      # Diff
+      # List index changes
+      #
+
+      - name: "Diff"
+        shell: pwsh
+        run: |
+            $Path = '${{ github.event.inputs.path }}'
+            if ( -not (Test-Path -Path $Path)) {
+              Write-Host "##[error]The path $Path does not exist"
+              exit 1
+            }
+            $PathItem = Get-Item -Path $Path
+            if ($PathItem.PSISContainer) {
+              $gitDiff = Get-ChildItem $Path -File | Resolve-Path -Relative | ForEach-Object -MemberName Insert -ArgumentList 0, "M`t"
+            }
+            else {
+              $gitDiff = $PathItem.FullName | Resolve-Path -Relative | ForEach-Object -MemberName Insert -ArgumentList 0, "M`t"
+            }
+
+            if ($null -ne $gitDiff) {
+                $gitDiff | Write-Host
+                $gitDiff | Out-File -FilePath '/tmp/diff.txt'
+            }
+            else {
+                Write-Host '##[error]The validation pipeline failed because there is currently no change to be processed'
+                exit 1
+            }
+
+      #
+      # CustomSorting
+      # If CustomSorting is enabled, sort files in diff by the .order file in each directory
+      #
+
+      - name: "CustomSorting"
+        shell: pwsh
+        if: ${{ env.AZOPS_CUSTOM_SORT_ORDER == 'true' }}
+        run: |
+          ./.scripts/customSorting.ps1
+
+      #
+      # Deploy
+      # Deploy all templates in path.
+      #
+
+      - name: "Deploy"
+        shell: pwsh
+        run: |
+          $Env:PSModulePath = $Env:PSModulePath, '$(modulesFolder)' -join [IO.Path]::PathSeparator
+          $CustomSortOrder = $Env:AZOPS_CUSTOM_SORT_ORDER -eq 'true'
+          Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
+          Initialize-AzOpsEnvironment
+          $diff = Get-Content -Path /tmp/diff.txt
+          Invoke-AzOpsPush -ChangeSet $diff -CustomSortOrder:$CustomSortOrder
+          Get-Job | Remove-Job -Force

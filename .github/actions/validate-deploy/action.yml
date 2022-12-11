@@ -37,6 +37,18 @@ runs:
             Write-Error -Message 'The validation pipeline failed because there is currently no change to be processed'
             exit 1
           }
+
+      #
+      # CustomSorting
+      # If CustomSorting is enabled, sort files in diff by the .order file in each directory
+      #
+
+      - name: "CustomSorting"
+        shell: pwsh
+        if: ${{ env.AZOPS_CUSTOM_SORT_ORDER == 'true' }}
+        run: |
+          ./.scripts/customSorting.ps1
+
       #
       # Deploy
       # Initial deployment of any index changes
