@@ -29,6 +29,7 @@ variables:
 jobs:
 
   - job: push
+    condition: not(contains(variables['Build.SourceVersionMessage'], 'from automated into main'))
 
     #
     # Push
@@ -50,13 +51,6 @@ jobs:
       #
 
       - template: .templates/sharedSteps.yml
-        parameters:
-          AZOPS_MODULE_VERSION: ${{ variables['AZOPS_MODULE_VERSION'] }}
-          modulesFolder: ${{ variables['modulesFolder'] }}
-          ARM_CLIENT_ID: ${{ variables['ARM_CLIENT_ID'] }}
-          ARM_CLIENT_SECRET: ${{ variables['ARM_CLIENT_SECRET'] }}
-          ARM_SUBSCRIPTION_ID: ${{ variables['ARM_SUBSCRIPTION_ID'] }}
-          ARM_TENANT_ID: ${{ variables['ARM_TENANT_ID'] }}
 
       #
       # Deploy
@@ -66,4 +60,3 @@ jobs:
       - template: .templates/validate-deploy.yml
         parameters:
           deploy: true
-          modulesFolder: ${{ variables['modulesFolder'] }}

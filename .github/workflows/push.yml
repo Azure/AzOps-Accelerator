@@ -23,8 +23,9 @@ env:
 
   ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
   ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  ARM_ENVIRONMENT: ${{ secrets.ARM_ENVIRONMENT }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
   AZOPS_MODULE_VERSION: ${{ secrets.AZOPS_MODULE_VERSION }}
 
   #
@@ -55,7 +56,7 @@ jobs:
       #
 
       - name: "Checkout"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 

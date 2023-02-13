@@ -1,27 +1,3 @@
-parameters:
-
-  - name: AZOPS_MODULE_VERSION
-    type: string
-    default: ''
-
-  - name: modulesFolder
-    type: string
-    default: '$(System.DefaultWorkingDirectory)/Modules'
-
-  - name: ARM_CLIENT_ID
-    type: string
-    default: ''
-
-  - name: ARM_CLIENT_SECRET
-    type: string
-    default: ''
-
-  - name: ARM_SUBSCRIPTION_ID
-    type: string
-
-  - name: ARM_TENANT_ID
-    type: string
-
 steps:
 
   #
@@ -45,8 +21,7 @@ steps:
     inputs:
       targetType: "inline"
       script: |
-        $latestVersionUri = "https://www.powershellgallery.com/api/v2/FindPackagesById()?id='AzOps'&`$filter=IsLatestVersion"
-        $latestVersionId = (Invoke-RestMethod $latestVersionUri).properties.NormalizedVersion
+        $latestVersionId = Find-Module -Name AzOps | Select-Object -ExpandProperty Version
         Write-Host "##vso[task.setvariable variable=AZOPS_MODULE_VERSION;]$latestVersionId"
 
   #
@@ -96,15 +71,22 @@ steps:
 
   - task: PowerShell@2
     displayName: "Connect"
+    env:
+      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
     inputs:
       targetType: "inline"
       script: |
         $Env:PSModulePath = $Env:PSModulePath, '$(modulesFolder)' -join [IO.Path]::PathSeparator  
+        $azParams = @{
+          SubscriptionId    = '$(ARM_SUBSCRIPTION_ID)'
+          TenantId          = '$(ARM_TENANT_ID)'
+        }
+        if ('$(ARM_ENVIRONMENT)' -in (Get-AzEnvironment).Name) {
+          $azParams.Environment = '$(ARM_ENVIRONMENT)'
+        }
         if('$(ARM_CLIENT_ID)') {
-          $clientId='$(ARM_CLIENT_ID)'
-          $clientSecret='$(ARM_CLIENT_SECRET)'
-          $credential = New-Object PSCredential -ArgumentList $clientId, (ConvertTo-SecureString -String $clientSecret -AsPlainText -Force)
-          Connect-AzAccount -TenantId $(ARM_TENANT_ID) -ServicePrincipal -Credential $credential -SubscriptionId $(ARM_SUBSCRIPTION_ID)
+          $azParams.credential = (New-Object PSCredential -ArgumentList '$(ARM_CLIENT_ID)', (ConvertTo-SecureString -String $Env:ARM_CLIENT_SECRET -AsPlainText -Force))
+          Connect-AzAccount -ServicePrincipal @azParams
         } else {        
-          Connect-AzAccount -TenantId $(ARM_TENANT_ID) -Identity -SubscriptionId $(ARM_SUBSCRIPTION_ID) 
+          Connect-AzAccount -Identity @azParams
         }

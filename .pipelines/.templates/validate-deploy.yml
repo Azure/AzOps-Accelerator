@@ -3,10 +3,6 @@ parameters:
     type: boolean
     default: false
 
-  - name: modulesFolder
-    type: string
-    default: '$(System.DefaultWorkingDirectory)/Modules'
-
 steps:
 
     #
@@ -14,22 +10,41 @@ steps:
     # List index changes
     #
 
-  - task: Bash@3
+  - task: PowerShell@2
     displayName: "Diff"
     inputs:
       targetType: "inline"
       script: |
-        if [ ! -z "$(git diff --name-status HEAD^ HEAD)" ]; then
-          echo $(git diff --name-status HEAD^ HEAD)
-          git diff --name-status HEAD^ HEAD > /tmp/diff.txt
-          if [ ! -z "$(git diff --diff-filter=D HEAD^ HEAD)" ]; then
-          echo $(git diff --diff-filter=D HEAD^ HEAD  --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r)
-          git diff --diff-filter=D HEAD^ HEAD --no-prefix | grep ^- | sed -r "s/^([^-+ ]*)[-+ ]/\\1/" | less -r > /tmp/diffdeletedfiles.txt
-          fi
-        else
-          echo "The validation pipeline failed because there is currently no change to be processed"
-          exit 1
-        fi
+        $gitDiff = git diff --name-status HEAD^ HEAD
+        if($null -ne $gitDiff) {
+            $gitDiff | Write-Host
+            $gitDiff | Out-File -FilePath '/tmp/diff.txt'
+            
+            $deletedContent = git diff --diff-filter=D HEAD^ HEAD --no-prefix --no-renames
+            if($null -ne $deletedContent) {
+                $deletedContent = $deletedContent -match '^-' -replace '^([^-+ ]*)[-+ ]', '$1'
+                Write-Host '##[group]Deleted files content'
+                $deletedContent | Write-Host
+                Write-Host '##[endgroup]'
+                $deletedContent | Out-File -FilePath '/tmp/diffdeletedfiles.txt'
+            }
+        }
+        else {
+            Write-Host '##[error]The validation pipeline failed because there is currently no change to be processed'
+            exit 1
+        }
+
+    #
+    # CustomSorting
+    # If CustomSorting is enabled, sort files in diff by the .order file in each directory
+    #
+
+  - task: PowerShell@2
+    displayName: "CustomSorting"
+    condition: eq(variables['AZOPS_CUSTOM_SORT_ORDER'],'true')
+    inputs:
+      targetType: "filePath"
+      filePath: ".scripts/customSorting.ps1"
 
   #
   # Validate or Deploy
@@ -46,15 +61,16 @@ steps:
       targetType: "inline"
       script: |
         $Env:PSModulePath = $Env:PSModulePath, '$(modulesFolder)' -join [IO.Path]::PathSeparator
+        $CustomSortOrder = $Env:AZOPS_CUSTOM_SORT_ORDER -eq 'true'
         $RunWhatIf = -not ('${{parameters.deploy}}' -eq 'true')
         Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
         Initialize-AzOpsEnvironment
         $diff = Get-Content -Path /tmp/diff.txt
         if(Test-Path -Path "/tmp/diffdeletedfiles.txt") {
           $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
-          Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf:$RunWhatIf
+          Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf:$RunWhatIf -CustomSortOrder:$CustomSortOrder
         } 
         else {
-          Invoke-AzOpsPush -ChangeSet $diff -WhatIf:$RunWhatIf
+          Invoke-AzOpsPush -ChangeSet $diff -WhatIf:$RunWhatIf -CustomSortOrder:$CustomSortOrder
         }
         Get-Job | Remove-Job -Force

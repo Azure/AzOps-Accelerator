@@ -42,7 +42,7 @@ jobs:
     #
 
     - name: "Checkout"
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         token: ${{ secrets.WORKFLOW_TOKEN }}
         fetch-depth: 0
@@ -55,7 +55,7 @@ jobs:
     #
 
     - name: "Checkout"
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         repository: 'Azure/AzOps-Accelerator'
@@ -104,7 +104,7 @@ jobs:
           git add .github/
           git commit -m 'Update commit'
           git push origin ${{ env.branch }} -f
-          echo "::set-output name=state::continue"
+          echo "state=continue" >> $GITHUB_OUTPUT
         fi
 
     #

@@ -4,17 +4,29 @@ variables:
   # Credentials
   # This reference is to the Variable Group which needs
   # to be created which will contain the following values.
+  #
+  # Set ARM_ENVIRONMENT to the Azure Environment you wish to use.
+  # Valid values are: AzureCloud, AzureChinaCloud, AzureUSGovernment
+  #
   # Set AZOPS_MODULE_VERSION to the desired version of the 
-  # AzOps Module to enable version pinning and caching.
+  # AzOps Module to enable version pinning. No value will cache the latest release.
+  #
+  # Set AZOPS_CUSTOM_SORT_ORDER to true to enable custom sorting.
+  # Custom sorting will check for a file named .order in each folder.
+  # Files listed in the .order file will be deployed before other files and in the 
+  # order they are listed.
   #
   # - ARM_TENANT_ID
   # - ARM_SUBSCRIPTION_ID
   # - ARM_CLIENT_ID
   # - ARM_CLIENT_SECRET
+  # - ARM_ENVIRONMENT
   # - AZOPS_MODULE_VERSION   
+  # - AZOPS_CUSTOM_SORT_ORDER 
   #
 
   - group: credentials
+  - group: azops
   
   #
   # modulesFolder
