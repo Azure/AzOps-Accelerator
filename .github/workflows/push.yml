@@ -15,6 +15,12 @@ on:
     paths:
       - 'root/**'
 
+# Permissions required for the pipeline to interact with repo and federated credentials
+permissions:
+    id-token: write
+    contents: write
+    pull-requests: write
+    
 env:
 
   #
@@ -47,6 +53,8 @@ jobs:
 
     name: "Push"
     runs-on: ubuntu-20.04
+    # environment: prod # Environment if using Federated Credentials (https://github.com/azure/azops/wiki/github-oidc)
+    
 
     steps:
 
