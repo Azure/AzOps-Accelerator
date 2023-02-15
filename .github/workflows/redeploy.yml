@@ -15,11 +15,16 @@ on:
         description: 'Path with templates that will be deployed'
         required: true
 
+      
+#
 # Permissions required for the pipeline to interact with repo and federated credentials
+#
+
 permissions:
     id-token: write
     contents: write
     pull-requests: write
+
     
 env:
 
@@ -71,8 +76,13 @@ jobs:
 
     name: "Redeploy"
     runs-on: ubuntu-20.04
-    # environment: prod # Environment if using Federated Credentials (https://github.com/azure/azops/wiki/github-oidc)
-    
+
+    #
+    # Environment if using Federated Credentials 
+    # https://github.com/azure/azops/wiki/github-oidc
+    #
+
+    # environment: prod 
 
     steps:
 
