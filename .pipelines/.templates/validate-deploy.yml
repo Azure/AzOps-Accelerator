@@ -64,7 +64,6 @@ steps:
         $CustomSortOrder = $Env:AZOPS_CUSTOM_SORT_ORDER -eq 'true'
         $RunWhatIf = -not ('${{parameters.deploy}}' -eq 'true')
         Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
-        Initialize-AzOpsEnvironment
         $diff = Get-Content -Path /tmp/diff.txt
         if(Test-Path -Path "/tmp/diffdeletedfiles.txt") {
           $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt

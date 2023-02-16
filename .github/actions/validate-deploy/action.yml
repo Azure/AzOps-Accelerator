@@ -58,7 +58,6 @@ runs:
         shell: pwsh
         run: |
           Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
-          Initialize-AzOpsEnvironment
           $RunWhatIf = -not ('${{inputs.deploy}}' -eq 'true')
           $diff = Get-Content -Path /tmp/diff.txt
           if(Test-Path -Path "/tmp/diffdeletedfiles.txt") {
