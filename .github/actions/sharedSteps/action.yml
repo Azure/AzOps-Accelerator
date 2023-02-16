@@ -25,7 +25,7 @@ runs:
     - name: Cache AzOps module
       if: ${{ env.MODULE_VERSION != '' }}
       id: cache-AzOps
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ${{ env.modulesFolder }}
         key: '"AzOpsModule" | ${{ env.MODULE_VERSION }}'
@@ -59,11 +59,25 @@ runs:
       run: |
         $Env:PSModulePath = $Env:PSModulePath, '${{ env.modulesFolder }}' -join [IO.Path]::PathSeparator
         $azParams = @{
-          Credential      = (New-Object PSCredential -ArgumentList '${{env.ARM_CLIENT_ID}}', (ConvertTo-SecureString -String '${{env.ARM_CLIENT_SECRET}}' -AsPlainText -Force))
           SubscriptionId  = '${{env.ARM_SUBSCRIPTION_ID}}'
           TenantId        = '${{env.ARM_TENANT_ID}}'
         }
         if ('${{env.ARM_ENVIRONMENT}}' -in (Get-AzEnvironment).Name) {
           $azParams.Environment = '${{env.ARM_ENVIRONMENT}}'
         }
-        Connect-AzAccount -ServicePrincipal @azParams
+        # Use Service Principal if ARM_CLIENT_ID is set
+        if ('${{env.ARM_CLIENT_ID}}') {
+          # Use federated credentials if token and no secret exists
+          if ($ENV:ACTIONS_ID_TOKEN_REQUEST_TOKEN -and -not '${{env.ARM_CLIENT_SECRET}}') {
+            $url = "{0}&audience=api://AzureADTokenExchange" -f $ENV:ACTIONS_ID_TOKEN_REQUEST_URL
+            $federatedJwt = Invoke-RestMethod -Uri $url -Headers @{Authorization = "Bearer $ENV:ACTIONS_ID_TOKEN_REQUEST_TOKEN"}
+            $azParams.ApplicationId = '${{env.ARM_CLIENT_ID}}'
+            $azParams.FederatedToken = [System.Net.WebUtility]::UrlEncode($federatedJwt.Value)
+          } else {
+            $azParams.Credential = (New-Object PSCredential -ArgumentList '${{env.ARM_CLIENT_ID}}', (ConvertTo-SecureString -String '${{env.ARM_CLIENT_SECRET}}' -AsPlainText -Force))  
+          }
+          Connect-AzAccount -ServicePrincipal @azParams
+        } else {
+          # Connect with Managed Identity
+          Connect-AzAccount -Identity @azParams
+        }
