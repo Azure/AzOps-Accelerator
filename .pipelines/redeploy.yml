@@ -103,7 +103,6 @@ jobs:
             $Env:PSModulePath = $Env:PSModulePath, '$(modulesFolder)' -join [IO.Path]::PathSeparator
             $CustomSortOrder = $Env:AZOPS_CUSTOM_SORT_ORDER -eq 'true'
             Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
-            Initialize-AzOpsEnvironment
             $diff = Get-Content -Path /tmp/diff.txt
             Invoke-AzOpsPush -ChangeSet $diff -CustomSortOrder:$CustomSortOrder
             Get-Job | Remove-Job -Force
