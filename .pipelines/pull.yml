@@ -169,19 +169,19 @@ jobs:
       # Check for data changes
       #
 
-      - task: Bash@3
+      - task: PowerShell@2
         displayName: "Status"
         inputs:
           targetType: "inline"
           script: |
-            STATUS=$(git status --short $(folder))
-            echo $STATUS
-            if [ -z "$STATUS" ]
-            then
-              echo "##vso[task.setvariable variable=state]stop"
-            else
-              echo "##vso[task.setvariable variable=state]continue"
-            fi
+            $gitStatus = git status --short $(folder)
+            if ($null -ne $gitStatus) {
+              $gitStatus | Write-Host
+              Write-Host '##vso[task.setvariable variable=state]continue'
+            }
+            else {
+              Write-Host '##vso[task.setvariable variable=state]stop'
+            }
 
       #
       # Add
