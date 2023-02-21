@@ -230,31 +230,44 @@ jobs:
       # Update remote refs along with associated objects
       #
 
-      - task: Bash@3
+      - task: PowerShell@2
         displayName: "Merge"
         condition: contains(variables['state'], 'continue')
         inputs:
           targetType: "inline"
           script: |
+            # Check if active PR already exists
+            $prActive = az repos pr list `
+              --source-branch "$(branch)" `
+              --target-branch "main" `
+              --status "active"
+
+            $prId = $prActive | jq '.[0].pullRequestId'
+            if ($prId -ne 'null') {
+              Write-Host "Active PR found - nothing more to do: $prId"
+              exit
+            }
+
             # Open new PR
-            PROut=$(
-              az repos pr create \
-              --title "$(pull_request)" \
-              --source-branch "$(branch)" \
-              --target-branch "main" \
-              --squash true \
-              --delete-source-branch true \
-              --auto-complete true \
-            );
+            $prNew = az repos pr create `
+              --title "$(pull_request)" `
+              --source-branch "$(branch)" `
+              --target-branch "main" `
+              --squash true `
+              --delete-source-branch true `
+              --auto-complete true
 
             # Get PR ID and check status
-            PRid=$(echo $PROut | jq -r '.pullRequestId');
-            PRStatus=$(az repos pr show --id $PRid | jq .status);
+            $prId = $prNew | jq '.pullRequestId'
+            $prStatus = az repos pr show --id $PRid | jq '.status'
 
-            # If PR is not completed, then complete it bypassing policy
-            if [ $PRStatus == "\"active\"" ]; then
-              echo "Completing PR bypassing branch policy"
-              az repos pr update --status completed --id $PRid --bypass-policy true --bypass-policy-reason "Automated pull request" > /dev/null 2>&1
-            fi;
+            Write-Host "Pull Request created with Id: $prId"
+
+            # If PR is not completed, then optionally complete it bypassing policy
+            $completePullRequest = $env:AZOPS_COMPLETE_PULL_REQUEST -eq 'true'
+            if ( $completePullRequest -and $prStatus -eq 'active' ) {
+              Write-Host 'Completing PR bypassing branch policy'
+              $prUpdate = az repos pr update --status completed --id $PRid --bypass-policy true --bypass-policy-reason 'Automated pull request'
+            }
         env:
           AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
