@@ -16,13 +16,16 @@ variables:
   # Files listed in the .order file will be deployed before other files and in the 
   # order they are listed.
   #
+  # Set AZOPS_COMPLETE_PULL_REQUEST to false to opt-out from pull request completion.
+  #
   # - ARM_TENANT_ID
   # - ARM_SUBSCRIPTION_ID
   # - ARM_CLIENT_ID
   # - ARM_CLIENT_SECRET
   # - ARM_ENVIRONMENT
-  # - AZOPS_MODULE_VERSION   
-  # - AZOPS_CUSTOM_SORT_ORDER 
+  # - AZOPS_MODULE_VERSION
+  # - AZOPS_CUSTOM_SORT_ORDER
+  # - AZOPS_COMPLETE_PULL_REQUEST
   #
 
   - group: credentials
