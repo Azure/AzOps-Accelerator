@@ -54,7 +54,7 @@ variables:
   #
   # Folder Name
   # By default we generate the hierachy within the
-  # 'azops' folder within the root of the repository.
+  # 'root' folder within the root of the repository.
   # If this property is modified, the config value within
   # the settings.json file - Core.State will also need
   # to be changed.
@@ -129,7 +129,7 @@ jobs:
       # Set global options
       #
 
-      - task: Bash@3
+      - task: PowerShell@2
         displayName: "Configure"
         inputs:
           targetType: "inline"
@@ -142,7 +142,7 @@ jobs:
       # Switch branches
       #
 
-      - task: Bash@3
+      - task: PowerShell@2
         displayName: "Checkout"
         inputs:
           targetType: "inline"
@@ -188,7 +188,7 @@ jobs:
       # Add file content to index
       #
 
-      - task: Bash@3
+      - task: PowerShell@2
         displayName: "Add"
         condition: contains(variables['state'], 'continue')
         inputs:
@@ -202,7 +202,7 @@ jobs:
       # Record changes to the repository
       #
 
-      - task: Bash@3
+      - task: PowerShell@2
         displayName: "Commit"
         condition: contains(variables['state'], 'continue')
         inputs:
@@ -216,7 +216,7 @@ jobs:
       # Update remote refs along with associated objects
       #
 
-      - task: Bash@3
+      - task: PowerShell@2
         displayName: "Push"
         condition: contains(variables['state'], 'continue')
         inputs:
@@ -236,8 +236,6 @@ jobs:
         inputs:
           targetType: "inline"
           script: |
-            $autoComplete = $env:AZOPS_SKIP_PR_COMPLETION -ne 'true'
-
             # Check if active PR already exists
             $pr = az repos pr list `
               --source-branch "$(branch)" `
@@ -254,13 +252,14 @@ jobs:
                 --target-branch "main" `
                 --squash true `
                 --delete-source-branch true `
-                --auto-complete "$autoComplete" | ConvertFrom-Json -NoEnumerate
+                --auto-complete true | ConvertFrom-Json -NoEnumerate
               
               Write-Host 'PR created with Id:' $pr.pullRequestId
             }
             
             # Complete any active PR, new or existing
-            if ($autoComplete) {
+            $completePullRequest = $env:AZOPS_SKIP_PR_COMPLETION -ne 'true'
+            if ($completePullRequest) {
               $prId = $pr.pullRequestId
               $pr = az repos pr show --id $prId | ConvertFrom-Json -NoEnumerate
               # If PR is not completed, then complete it bypassing policy
