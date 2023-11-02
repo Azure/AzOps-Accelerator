@@ -63,6 +63,22 @@ steps:
         Save-Module @params
 
   #
+  # Federated Identity
+  # Get access token
+  #
+
+  - task: AzurePowerShell@5
+    displayName: "Access token"
+    condition: ne(variables['ARM_SERVICE_CONNECTION'], '')
+    inputs:
+      azureSubscription: $(ARM_SERVICE_CONNECTION)
+      pwsh: true
+      scriptType: 'InlineScript'
+      inline: |
+        $token = Get-AzAccessToken -ResourceTypeName MSGraph
+        Write-Host "##vso[task.setvariable variable=ARM_ACCESS_TOKEN;isSecret=true]$($token.Token)"
+
+  #
   # Connect
   # Authenticate Azure context
   # If no value is set for ARM_CLIENT_ID connect will try
@@ -73,6 +89,7 @@ steps:
     displayName: "Connect"
     env:
       ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+      ARM_ACCESS_TOKEN: $(ARM_ACCESS_TOKEN)
     inputs:
       targetType: "inline"
       script: |
@@ -84,8 +101,15 @@ steps:
         if ('$(ARM_ENVIRONMENT)' -in (Get-AzEnvironment).Name) {
           $azParams.Environment = '$(ARM_ENVIRONMENT)'
         }
+        # Use Service Principal if ARM_CLIENT_ID is set
         if('$(ARM_CLIENT_ID)') {
-          $azParams.credential = (New-Object PSCredential -ArgumentList '$(ARM_CLIENT_ID)', (ConvertTo-SecureString -String $Env:ARM_CLIENT_SECRET -AsPlainText -Force))
+          # Use federated credentials if token and no secret exists
+          if ($Env:ARM_ACCESS_TOKEN -and -not $Env:ARM_CLIENT_SECRET) {
+            $azParams.ApplicationId = '$(ARM_CLIENT_ID)'
+            $azParams.FederatedToken = '$Env:ARM_ACCESS_TOKEN' 
+          } else {
+            $azParams.credential = (New-Object PSCredential -ArgumentList '$(ARM_CLIENT_ID)', (ConvertTo-SecureString -String $Env:ARM_CLIENT_SECRET -AsPlainText -Force))
+          }
           Connect-AzAccount -ServicePrincipal @azParams
         } else {        
           Connect-AzAccount -Identity @azParams
