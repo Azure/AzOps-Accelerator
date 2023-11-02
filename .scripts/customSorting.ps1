@@ -28,7 +28,7 @@ $diff | ForEach-Object -Process {
     }
 }
 $sortedDiff = foreach ($directoryPath in ($diffTable.Keys | Sort-Object)) {
-    $orderPath = Join-Path -Path $directoryPath -ChildPath '.order'
+    $orderPath = [System.IO.Path]::Combine($directoryPath,'.order')
     if (Test-Path -Path $orderPath) {
         $order = Get-Content -Path $orderPath | ForEach-Object { $_.Trim() }
         foreach ($orderName in $order) {
