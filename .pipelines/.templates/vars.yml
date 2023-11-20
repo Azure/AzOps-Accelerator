@@ -26,13 +26,13 @@ variables:
   # - ARM_CLIENT_SECRET
   # - ARM_ENVIRONMENT
   # - ARM_SERVICE_CONNECTION
-  # - AZOPS_MODULE_VERSION   
-  # - AZOPS_CUSTOM_SORT_ORDER 
+  # - AZOPS_MODULE_VERSION
+  # - AZOPS_CUSTOM_SORT_ORDER
   #
 
   - group: credentials
   - group: azops
-  
+
   #
   # modulesFolder
   # To enable caching of PowerShell modules between
