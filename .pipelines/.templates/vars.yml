@@ -8,6 +8,10 @@ variables:
   # Set ARM_ENVIRONMENT to the Azure Environment you wish to use.
   # Valid values are: AzureCloud, AzureChinaCloud, AzureUSGovernment
   #
+  # Set ARM_SERVICE_CONNECTION to the name of the service connection
+  # that has been setup to use federated identity. In this case you also
+  # need to leave ARM_CLIENT_SECRET empty.
+  #
   # Set AZOPS_MODULE_VERSION to the desired version of the 
   # AzOps Module to enable version pinning. No value will cache the latest release.
   #
@@ -21,13 +25,14 @@ variables:
   # - ARM_CLIENT_ID
   # - ARM_CLIENT_SECRET
   # - ARM_ENVIRONMENT
-  # - AZOPS_MODULE_VERSION   
-  # - AZOPS_CUSTOM_SORT_ORDER 
+  # - ARM_SERVICE_CONNECTION
+  # - AZOPS_MODULE_VERSION
+  # - AZOPS_CUSTOM_SORT_ORDER
   #
 
   - group: credentials
   - group: azops
-  
+
   #
   # modulesFolder
   # To enable caching of PowerShell modules between
