@@ -135,7 +135,7 @@ jobs:
    
     #
     # Environment if using Federated Credentials 
-    # https://github.com/azure/azops/wiki/github-oidc
+    # https://github.com/azure/azops/wiki/oidc
     #
 
     # environment: prod 
