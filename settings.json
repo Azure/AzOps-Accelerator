@@ -40,6 +40,8 @@
             "Core.SkipRole": false,
             "Core.SubscriptionsToIncludeResourceGroups": ["*"],
             "Core.TemplateParameterFileSuffix": ".json",
+            "Core.AllowMultipleTemplateParameterFiles": false,
+            "Core.MultipleTemplateParameterFileSuffix": ".x",
             "Core.ThrottleLimit": 5,
             "Core.WhatifExcludedChangeTypes":[
                 "NoChange",
