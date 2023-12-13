@@ -41,6 +41,7 @@
             "Core.SubscriptionsToIncludeResourceGroups": ["*"],
             "Core.TemplateParameterFileSuffix": ".json",
             "Core.AllowMultipleTemplateParameterFiles": false,
+            "Core.DeployAllMultipleTemplateParameterFiles": false,
             "Core.MultipleTemplateParameterFileSuffix": ".x",
             "Core.ThrottleLimit": 5,
             "Core.WhatifExcludedChangeTypes":[
