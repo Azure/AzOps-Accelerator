@@ -43,6 +43,7 @@
             "Core.AllowMultipleTemplateParameterFiles": false,
             "Core.DeployAllMultipleTemplateParameterFiles": false,
             "Core.MultipleTemplateParameterFileSuffix": ".x",
+            "Core.ParallelDeployMultipleTemplateParameterFiles": false,
             "Core.ThrottleLimit": 5,
             "Core.WhatifExcludedChangeTypes":[
                 "NoChange",
