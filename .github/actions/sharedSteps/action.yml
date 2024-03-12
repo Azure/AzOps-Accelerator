@@ -25,7 +25,7 @@ runs:
     - name: Cache AzOps module
       if: ${{ env.MODULE_VERSION != '' }}
       id: cache-AzOps
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ env.modulesFolder }}
         key: '"AzOpsModule" | ${{ env.MODULE_VERSION }}'
