@@ -149,6 +149,29 @@ jobs:
           script: |
             git checkout -b $(branch)
 
+      # 
+      # Verify that the Management resource provider is registered in the subscription where AzOps will initialize.
+      #
+
+      - task: PowerShell@2
+        displayName: "Pre-initialize"
+        inputs:
+          targetType: "inline"
+          script: |
+            $Env:PSModulePath = $Env:PSModulePath, '$(modulesFolder)' -join [IO.Path]::PathSeparator
+            $ManagementResourceProvider = Get-AzResourceProvider -ProviderNamespace 'microsoft.management' | Where-object {$_.ResourceTypes.ResourceTypeName -eq 'managementGroups'}
+            $InitSub = $((Get-AzContext).Subscription.Id)
+            if ($ManagementResourceProvider.RegistrationState -ne 'Registered') {
+              Write-verbose "The Azure Resource Provider 'Microsoft.Management' is not currently registered in the subscription '$InitSub'" -Verbose
+              try {
+                Write-verbose "Attempting to register the 'Microsoft.Management' Resource provider." -Verbose
+                Register-AzResourceProvider -ProviderNamespace 'Microsoft.Management'
+              } catch {
+                Write-Warning "Unable to register the 'Microsoft.Management' resource provider for subscription '$InitSub'"
+                throw
+              }
+            }
+
       #
       # Initialize
       # Generate new state data
