@@ -39,6 +39,17 @@ env:
   APPLICATIONINSIGHTS_CONNECTIONSTRING: ${{ secrets.APPLICATIONINSIGHTS_CONNECTIONSTRING }}
 
   #
+  # customSortOrder
+  # Set to true to support custom sort order.
+  # When enabled, add a file named .order containing a list of
+  # file names and the files in that folder will be deployed in the
+  # order specified in the file. All files not listed in the file
+  # will be deployed after the files listed in the file.
+  #
+
+  AZOPS_CUSTOM_SORT_ORDER: ${{ secrets.AZOPS_CUSTOM_SORT_ORDER }}
+
+  #
   # modulesFolder
   # To enable caching of PowerShell modules between
   # runs, the modules are stored in a modules folder
