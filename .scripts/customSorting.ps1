@@ -9,8 +9,9 @@ $EndGroup = $ENV:CI ? '::endgroup::' : '##[endgroup]'
 $diff = Get-Content -Path $DiffFilePath
 
 Write-Host "${StartGroup}Files found in diff:"
-
 $diff | Write-Host
+Write-Host "$EndGroup"
+
 $diffTable = @{}
 $diff | ForEach-Object -Process {
     $change = $_
@@ -40,7 +41,7 @@ $sortedDiff = foreach ($directoryPath in ($diffTable.Keys | Sort-Object)) {
     }
     Write-Output ($diffTable.$directoryPath.Values.diffString | Sort-Object)
 }
-Write-Host "$EndGroup"
+
 Write-Host "${StartGroup}Sorted files:"
 
 $sortedDiff | Write-Host
