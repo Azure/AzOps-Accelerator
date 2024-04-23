@@ -15,10 +15,11 @@ Write-Host "$EndGroup"
 $diffTable = @{}
 $diff | ForEach-Object -Process {
     $change = $_
-    $path = ($change -split "`t")[-1]
+    $operation, $path = ($change -split "`t")
     $entry = [pscustomobject]@{
         fileName   = Split-Path -Path $path -Leaf
         directory  = Split-Path -Path $path -Parent
+        operation  = $operation
         diffString = $change
     }
     if ($null -eq $diffTable[$entry.directory]) {
@@ -28,19 +29,37 @@ $diff | ForEach-Object -Process {
         $diffTable[$entry.directory][$entry.fileName] = $entry
     }
 }
-$sortedDiff = foreach ($directoryPath in ($diffTable.Keys | Sort-Object)) {
+$sortedDiff = $(foreach ($directoryPath in ($diffTable.Keys | Sort-Object)) {
     $orderPath = [System.IO.Path]::Combine($directoryPath,'.order')
     if (Test-Path -Path $orderPath) {
         $order = Get-Content -Path $orderPath | ForEach-Object { $_.Trim() }
-        foreach ($orderName in $order) {
+        $deleteSortedDiffs = @()
+        $addSortedDiffs = foreach ($orderName in $order) {
             if ($null -ne $diffTable.$directoryPath.$orderName) {
-                Write-Output -InputObject $diffTable.$directoryPath.$orderName.diffString
+                $diffString = $diffTable.$directoryPath.$orderName.diffString
+                $operation = $diffTable.$directoryPath.$orderName.operation
                 $diffTable.$directoryPath.Remove($orderName)
+                if ($operation -eq 'D') {
+                    $deleteSortedDiffs += $diffString
+                    continue
+                }
+                elseif ($operation -in 'A', 'M', 'R' -or $operation -match '^R0[0-9][0-9]$') {
+                    Write-Output -InputObject $diffString
+                }
+                else {
+                    Write-Error -Message "Invalid changeset type '$operation' for $diffString"
+                }
             }
         }
+        # Deletes should happen in reverse order to add/modifys
+        [array]::Reverse($deleteSortedDiffs)
+
+        Write-Output -InputObject $addSortedDiffs
+        Write-Output -InputObject $deleteSortedDiffs
     }
-    Write-Output ($diffTable.$directoryPath.Values.diffString | Sort-Object)
-}
+    # make sure to return unaddressed diffs too
+    Write-Output -InputObject ($diffTable.$directoryPath.Values.diffString | Sort-Object)
+}) | Where-Object { $_ }
 
 Write-Host "${StartGroup}Sorted files:"
 
