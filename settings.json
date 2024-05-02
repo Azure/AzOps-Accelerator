@@ -40,6 +40,7 @@
                 "Microsoft.VSOnline/plans"
             ],
             "Core.SkipRole": false,
+            "Core.SubscriptionsToIncludeChildResource": ["*"],
             "Core.SubscriptionsToIncludeResourceGroups": ["*"],
             "Core.TemplateParameterFileSuffix": ".json",
             "Core.AllowMultipleTemplateParameterFiles": false,
