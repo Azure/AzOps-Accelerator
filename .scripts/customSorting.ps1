@@ -15,7 +15,12 @@ Write-Host "$EndGroup"
 $diffTable = @{}
 $diff | ForEach-Object -Process {
     $change = $_
-    $operation, $path = ($change -split "`t")
+    # there can be 2 elements for Add, Delete, Modify operations
+    # there can be 3 elements if it's a rename
+    $changeParts = ($change -split "`t")
+    $operation = $changeParts[0]
+    $path = $changeParts[-1]
+    
     $entry = [pscustomobject]@{
         fileName   = Split-Path -Path $path -Leaf
         directory  = Split-Path -Path $path -Parent
