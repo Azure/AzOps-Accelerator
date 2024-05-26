@@ -57,14 +57,16 @@ runs:
       - name: ${{ inputs.name }}
         shell: pwsh
         run: |
+          $Env:PSModulePath = $Env:PSModulePath, '$(modulesFolder)' -join [IO.Path]::PathSeparator
+          $CustomSortOrder = $Env:AZOPS_CUSTOM_SORT_ORDER -eq 'true'
           Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
           $RunWhatIf = -not ('${{inputs.deploy}}' -eq 'true')
           $diff = Get-Content -Path /tmp/diff.txt
           if(Test-Path -Path "/tmp/diffdeletedfiles.txt") {
             $diffdeletedfiles = Get-Content -Path /tmp/diffdeletedfiles.txt
-            Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf:$RunWhatIf
+            Invoke-AzOpsPush -ChangeSet $diff -DeleteSetContents $diffdeletedfiles -WhatIf:$RunWhatIf -CustomSortOrder:$CustomSortOrder
           } 
           else {
-            Invoke-AzOpsPush -ChangeSet $diff -WhatIf:$RunWhatIf
+            Invoke-AzOpsPush -ChangeSet $diff -WhatIf:$RunWhatIf -CustomSortOrder:$CustomSortOrder
           }
           Get-Job | Remove-Job -Force
