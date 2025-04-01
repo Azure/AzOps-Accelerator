@@ -1,7 +1,0 @@
-steps:
-- task: PowerShell@2
-  displayName: "Connect to Azure"
-  inputs:
-    targetType: "inline"
-    script: |
-      Connect-AzAccount -Identity
