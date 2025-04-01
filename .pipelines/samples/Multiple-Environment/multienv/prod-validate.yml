@@ -12,7 +12,7 @@ variables:
     value: "refs/heads/automated-prod"
 
 pool:
-  vmImage: "ubuntu-20.04"
+  vmImage: "ubuntu-24.04"
 
 jobs:
   - job: paramcheck

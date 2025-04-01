@@ -22,7 +22,7 @@ variables:
     value: "automated-canary"
 
 pool:
-  vmImage: "ubuntu-20.04"
+  vmImage: "ubuntu-24.04"
 
 stages:
 - stage: BuildBranchCheck
