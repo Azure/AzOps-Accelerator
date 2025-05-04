@@ -12,26 +12,19 @@ runs:
   using: 'composite'
   steps:
       #
-      # Diff
+      # Diff List
       # List index changes
       #
       
-      - name: "Diff"
+      - name: "Diff List"
         shell: pwsh
         run: |
-          $gitDiff = git diff --name-status HEAD^ HEAD
+          Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
+          $stateDir = Get-PSFConfigValue -FullName 'AzOps.Core.State'
+          $gitDiff = git diff --name-status HEAD^ HEAD -- "$stateDir"
           if ($null -ne $gitDiff) {
             $gitDiff | Write-Host
             $gitDiff | Out-File -FilePath '/tmp/diff.txt'
-            
-            $deletedContent = git diff --diff-filter=D HEAD^ HEAD --no-prefix --no-renames
-            if($null -ne $deletedContent) {
-                $deletedContent = $deletedContent -match '^-' -replace '^([^-+ ]*)[-+ ]', '$1'
-                Write-Host '##[group]Deleted files content'
-                $deletedContent | Write-Host
-                Write-Host '##[endgroup]'
-                $deletedContent | Out-File -FilePath '/tmp/diffdeletedfiles.txt'
-            }
           }
           else {
             Write-Error -Message 'The validation pipeline failed because there is currently no change to be processed'
@@ -50,7 +43,33 @@ runs:
           ./.scripts/customSorting.ps1
 
       #
-      # Deploy
+      # Diff
+      # Get content from list
+      #
+      
+      - name: "Diff"
+        shell: pwsh
+        run: |
+          $diff = Get-Content -Path '/tmp/diff.txt'
+          $deletedContent = $(foreach ($change in $diff) {
+            $path = ($change -split "`t")[-1]
+            $fileDelContent = git diff --diff-filter=D HEAD^ HEAD --no-prefix --no-renames -- "$path"
+            if($null -ne $fileDelContent) {
+                $fileDelContent = $fileDelContent -match '^-' -replace '^([^-+ ]*)[-+ ]', '$1'
+                Write-Output -InputObject $fileDelContent
+            }
+          }) | Where-Object { $_ }
+
+          if ($deletedContent.Count -gt 0) {
+            Write-Host '##[group]Deleted files content'
+            $deletedContent | Write-Host
+            Write-Host '##[endgroup]'
+            $deletedContent | Out-File -FilePath '/tmp/diffdeletedfiles.txt'
+          }
+
+      #
+      # Validate or Deploy
+      # If parameter "deploy" is set to true, then deploy the changes,
       # Initial deployment of any index changes
       #
 

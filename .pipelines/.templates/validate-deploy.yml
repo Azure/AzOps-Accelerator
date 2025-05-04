@@ -5,39 +5,32 @@ parameters:
 
 steps:
 
-    #
-    # Diff
-    # List index changes
-    #
-
+  #
+  # Diff List
+  # List index changes
+  #
+    
   - task: PowerShell@2
-    displayName: "Diff"
+    displayName: "Diff List"
     inputs:
       targetType: "inline"
       script: |
-        $gitDiff = git diff --name-status HEAD^ HEAD
-        if($null -ne $gitDiff) {
-            $gitDiff | Write-Host
-            $gitDiff | Out-File -FilePath '/tmp/diff.txt'
-            
-            $deletedContent = git diff --diff-filter=D HEAD^ HEAD --no-prefix --no-renames
-            if($null -ne $deletedContent) {
-                $deletedContent = $deletedContent -match '^-' -replace '^([^-+ ]*)[-+ ]', '$1'
-                Write-Host '##[group]Deleted files content'
-                $deletedContent | Write-Host
-                Write-Host '##[endgroup]'
-                $deletedContent | Out-File -FilePath '/tmp/diffdeletedfiles.txt'
-            }
+        Import-PSFConfig -Path settings.json -Schema MetaJson -EnableException
+        $stateDir = Get-PSFConfigValue -FullName 'AzOps.Core.State'
+        $gitDiff = git diff --name-status HEAD^ HEAD -- "$stateDir"
+        if ($null -ne $gitDiff) {
+          $gitDiff | Write-Host
+          $gitDiff | Out-File -FilePath '/tmp/diff.txt'
         }
         else {
-            Write-Host '##[error]The validation pipeline failed because there is currently no change to be processed'
-            exit 1
+          Write-Host '##[error]The validation pipeline failed because there is currently no change to be processed'
+          exit 1
         }
 
-    #
-    # CustomSorting
-    # If CustomSorting is enabled, sort files in diff by the .order file in each directory
-    #
+  #
+  # CustomSorting
+  # If CustomSorting is enabled, sort files in diff by the .order file in each directory
+  #
 
   - task: PowerShell@2
     displayName: "CustomSorting"
@@ -45,6 +38,33 @@ steps:
     inputs:
       targetType: "filePath"
       filePath: ".scripts/customSorting.ps1"
+
+  #
+  # Diff
+  # Get content from list
+  #
+    
+  - task: PowerShell@2
+    displayName: "Diff"
+    inputs:
+      targetType: "inline"
+      script: |
+        $diff = Get-Content -Path '/tmp/diff.txt'
+        $deletedContent = $(foreach ($change in $diff) {
+          $path = ($change -split "`t")[-1]
+          $fileDelContent = git diff --diff-filter=D HEAD^ HEAD --no-prefix --no-renames -- "$path"
+          if($null -ne $fileDelContent) {
+              $fileDelContent = $fileDelContent -match '^-' -replace '^([^-+ ]*)[-+ ]', '$1'
+              Write-Output -InputObject $fileDelContent
+          }
+        }) | Where-Object { $_ }
+
+        if ($deletedContent.Count -gt 0) {
+          Write-Host '##[group]Deleted files content'
+          $deletedContent | Write-Host
+          Write-Host '##[endgroup]'
+          $deletedContent | Out-File -FilePath '/tmp/diffdeletedfiles.txt'
+        }
 
   #
   # Validate or Deploy
