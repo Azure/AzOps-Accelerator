@@ -19,12 +19,12 @@ trigger: none
 # Default: Every 6 hours
 #
 
-schedules:
-  - cron: "0 */6 * * *"
-    branches:
-      include:
-        - main
-    always: true
+#schedules:
+#  - cron: "0 */6 * * *"
+#    branches:
+#      include:
+#        - main
+#    always: true
 
 #
 # Pipelines
